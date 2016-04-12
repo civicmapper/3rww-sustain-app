@@ -198,3 +198,7 @@ path {
   stroke-opacity: 1;
   fill-opacity: 0.6;
 }
+
+h1.main-title {
+  font-family: 'Titillium Web', sans-serif;
+}
