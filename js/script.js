@@ -152,23 +152,34 @@ $('input[type=radio][name=area]').change(function () {
     //turn on certain things
     if (this.value == 'polygon') {
         areaType = 'polygon';
+        flush_selections();
         $('.leaflet-draw-toolbar').show();
         $('.download').attr('disabled', 'disabled');
+
     }
     if (this.value == 'currentView') {
         areaType = 'currentView';
+        flush_selections();
     }
     if (this.value == 'municipality') {
         areaType = 'municipality';
         muniLayer.show();
+        flush_selections();
         $('.download').attr('disabled', 'disabled');
     }
     if (this.value == 'neighborhood') {
         areaType = 'neighborhood';
         hoodLayer.show();
+        flush_selections();
         $('.download').attr('disabled', 'disabled');
     }
 });
+
+var flush_selections = function(){
+    customPolygon = undefined;
+    nPolygon = undefined;
+    mPolygon = undefined;
+};
 
 //runs when any of the download buttons is clicked
 $('.download').click(function () {
@@ -205,14 +216,28 @@ $('.download').click(function () {
     }
 
     if (areaType == 'polygon') {
+        if(customPolygon == undefined){
+            alert("Don't forget to draw your area on the map!");
+            return;
+        }
         data.intersects = customPolygon;
     }
 
+
     if (areaType == 'municipality') {
+        if(mPolygon == undefined){
+            alert("Don't forget to select your municipality from the map!");
+            return;
+        }
+
         data.intersects = mPolygon;
     }
 
     if (areaType == 'neighborhood') {
+        if(nPolygon == undefined){
+            alert("Don't forget to select your neighborhood from the map!");
+            return;
+        }
         data.intersects = nPolygon;
     }
 
