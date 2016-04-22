@@ -5,7 +5,6 @@
   left: 0;
 }
 .List-blocks {
-  padding-top: 104px;
 }
 .List-blocks > li {
   border-bottom: 1px solid #e5e5e5;
@@ -82,7 +81,6 @@ a:hover {
   pointer-events: none;
 }
 .leaflet-control-container .leaflet-top {
-  top: 108px;
   left: 14px;
 }
 .leaflet-draw {
