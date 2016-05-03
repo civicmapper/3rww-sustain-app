@@ -10,8 +10,8 @@ var map = new L.Map('map', {
     zoom: 11
 });
 
-L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
 }).addTo(map);
 
 var selectLayer = L.geoJson().addTo(map); //add empty geojson layer for selections
@@ -270,7 +270,7 @@ $('.download').click(function () {
 
         url = encodeURIComponent(url);
         console.log(url);
-        url = 'http://oneclick.cartodb.com/?file=' + url;
+        url = 'https://oneclick.cartodb.com/?file=' + url;
     }
 
     window.open(url, 'My Download');
