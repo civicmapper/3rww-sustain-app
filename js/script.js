@@ -10,8 +10,8 @@ var map = new L.Map('map', {
     zoom: 11
 });
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
+L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CartoDB</a>'
 }).addTo(map);
 
 var selectLayer = L.geoJson().addTo(map); //add empty geojson layer for selections
@@ -74,7 +74,7 @@ map.on('draw:drawstart', function (e) {
 });
 
 //add cartodb named map
-var layerUrl = 'https://wprdc.cartodb.com/api/v2/viz/24843ea8-f778-11e5-a7c9-0e674067d321/viz.json';
+var layerUrl = 'https://wprdc.carto.com/api/v2/viz/24843ea8-f778-11e5-a7c9-0e674067d321/viz.json';
 
 cartodb.createLayer(map, layerUrl)
     .addTo(map)
@@ -84,9 +84,10 @@ cartodb.createLayer(map, layerUrl)
         //TODO: build array of selction layers based off JSON file
         muniLayer = layer.getSubLayer(1);
         hoodLayer = layer.getSubLayer(2);
-
+        //hoodLayer.setInteractivity("cartodb_id, hood");
         muniLayer.hide();  //hide municipality polygons
         hoodLayer.hide();
+        console.log(hoodLayer);
         muniLayer.on('featureClick', processMuni);
         hoodLayer.on('featureClick', processNeighborhood);
     });
@@ -246,7 +247,7 @@ $('.download').click(function () {
         data.cartodb = true;
     }
 
-    var queryTemplate = 'https://wprdc.cartodb.com/api/v2/sql?skipfields=cartodb_id,created_at,updated_at,name,description&format={{type}}&filename=parcel_data&q=SELECT the_geom{{fields}} FROM property_assessment_app a WHERE ST_INTERSECTS({{{intersects}}}, a.the_geom)';
+    var queryTemplate = 'https://wprdc.carto.com/api/v2/sql?skipfields=cartodb_id,created_at,updated_at,name,description&format={{type}}&filename=parcel_data&q=SELECT the_geom{{fields}} FROM property_assessment_app a WHERE ST_INTERSECTS({{{intersects}}}, a.the_geom)';
 
 
     var buildquery = Handlebars.compile(queryTemplate);
@@ -255,7 +256,7 @@ $('.download').click(function () {
 
     console.log("Downloading " + url);
 
-    //http://oneclick.cartodb.com/?file={{YOUR FILE URL}}&provider={{PROVIDER NAME}}&logo={{YOUR LOGO URL}}
+    //http://oneclick.carto.com/?file={{YOUR FILE URL}}&provider={{PROVIDER NAME}}&logo={{YOUR LOGO URL}}
     if (data.cartodb) {
         //open in cartodb only works if you encodeURIcomponent() on the SQL,
         //then concatenate with the rest of the URL, then encodeURIcomponent() the whole thing
@@ -270,7 +271,7 @@ $('.download').click(function () {
 
         url = encodeURIComponent(url);
         console.log(url);
-        url = 'https://oneclick.cartodb.com/?file=' + url;
+        url = 'https://oneclick.carto.com/?file=' + url;
     }
 
     window.open(url, 'My Download');
@@ -283,13 +284,13 @@ $('.download').click(function () {
 //when a polygon is clicked in Neighborhood View, download its geojson, etc
 function processMuni(e, latlng, pos, data, layer) {
     console.log('Muni data', data);
-    var nid = data.cartodb_id;
+    var nid = data.f0_label;
     selectLayer.clearLayers();
     console.log(nid);
     var sql = new cartodb.SQL({user: 'wprdc'});
-    sql.execute("SELECT the_geom FROM allegheny_county_municipal_boundaries WHERE cartodb_id = {{id}}",
+    sql.execute("SELECT the_geom FROM allegheny_county_municipal_boundaries WHERE f0_label = '{{id}}'",
         {
-            id: data.cartodb_id
+            id: data.f0_label
         },
         {
             format: 'geoJSON'
@@ -299,20 +300,20 @@ function processMuni(e, latlng, pos, data, layer) {
             console.log(data);
             selectLayer.addData(data);
             //setup SQL statement for intersection
-            mPolygon = '(SELECT the_geom FROM allegheny_county_municipal_boundaries WHERE cartodb_id = ' + nid + ')';
+            mPolygon = "(SELECT the_geom FROM allegheny_county_municipal_boundaries WHERE f0_label = '" + nid + "')";
         })
 }
 
 
 function processNeighborhood(e, latlng, pos, data, layer) {
     console.log('Hood data', data);
-    var nid = data.cartodb_id;
+    var nid = data.hood;
     selectLayer.clearLayers();
     console.log(nid);
     var sql = new cartodb.SQL({user: 'wprdc'});
-    sql.execute("SELECT the_geom FROM pittsburgh_neighborhoods WHERE cartodb_id = {{id}}",
+    sql.execute("SELECT the_geom FROM pittsburgh_neighborhoods WHERE hood = '{{id}}'",
         {
-            id: data.cartodb_id
+            id: data.hood
         },
         {
             format: 'geoJSON'
@@ -322,7 +323,7 @@ function processNeighborhood(e, latlng, pos, data, layer) {
             console.log(data);
             selectLayer.addData(data);
             //setup SQL statement for intersection
-            nPolygon = '(SELECT the_geom FROM pittsburgh_neighborhoods WHERE cartodb_id = ' + nid + ')';
+            nPolygon = "(SELECT the_geom FROM pittsburgh_neighborhoods WHERE hood = '" + nid + "')";
         })
 }
 
