@@ -189,13 +189,13 @@ a:hover {
 .leaflet-container {
   background: #2A313D;
 }
-/* SVG Stuff */
+/* SVG Stuff
 path {
   stroke: #FFC622;
   fill: #FFC622;
   stroke-opacity: 1;
   fill-opacity: 0.6;
-}
+}*/
 
 h1.main-title {
   font-family: 'Titillium Web', sans-serif;

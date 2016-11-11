@@ -6,13 +6,14 @@ var mPolygon;
 
 //initialize map
 var map = new L.Map('map', {
-    center: [40.45, -79.9959],
-    zoom: 11
+    center: [40.4016274,-79.9315583],
+    zoom: 15
 });
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
-}).addTo(map);
+//L.esri.basemapLayer('Gray').addTo(map);
+//L.esri.basemapLayer('GrayLabels').addTo(map);
+L.esri.Vector.basemap('Gray').addTo(map);
+
 
 var selectLayer = L.geoJson().addTo(map); //add empty geojson layer for selections
 
@@ -25,11 +26,11 @@ var options = {
         polygon: {
             allowIntersection: false, // Restricts shapes to simple polygons
             drawError: {
-                color: '#e1e100', // Color the shape will turn when intersects
-                message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+                color: '#CC7450', // Color the shape will turn when intersects
+                message: '<strong>Sorry!<strong> you can\'t draw that!' // Message that will show when intersect
             },
             shapeOptions: {
-                color: '#bada55'
+                color: '#4396E4'
             }
         },
         circle: false, // Turns off this drawing tool
@@ -59,8 +60,8 @@ map.on('draw:created', function (e) {
     drawnLayer = e.layer;
 
     var coords = e.layer._latlngs;
-    console.log(coords);
-    customPolygon = makeSqlPolygon(coords);
+    console.log(JSON.stringify(coords));
+    //customPolygon = makeSqlPolygon(coords);
     // Do whatever else you need to. (save to db, add to map etc)
     map.addLayer(layer);
     $('.download').removeAttr('disabled');
@@ -73,6 +74,7 @@ map.on('draw:drawstart', function (e) {
     }
 });
 
+/* SWAP CODE BELOW FOR ESRI LEAFLET MAP STUFF
 //add cartodb named map
 var layerUrl = 'https://wprdc.cartodb.com/api/v2/viz/24843ea8-f778-11e5-a7c9-0e674067d321/viz.json';
 
@@ -83,18 +85,46 @@ cartodb.createLayer(map, layerUrl)
         backdrop.setInteraction(false);
         //TODO: build array of selction layers based off JSON file
         muniLayer = layer.getSubLayer(1);
-        hoodLayer = layer.getSubLayer(2);
+        watershedLayer = layer.getSubLayer(2);
 
         muniLayer.hide();  //hide municipality polygons
-        hoodLayer.hide();
+        watershedLayer.hide();
         muniLayer.on('featureClick', processMuni);
-        hoodLayer.on('featureClick', processNeighborhood);
+        watershedLayer.on('featureClick', processWatershed);
     });
+*/
 
-//populate fields list
+/*L.esri.dynamicMapLayer({
+    url: 'http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer'
+}).addTo(map);*/
+
+var defaultStyleOptions = {color: '#4396E4', weight: 3, opacity: 0.6, fillOpacity:0};
+var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity: 0.6, fillColor: '#4396E4' };
+
+var watershedLayer = L.esri.featureLayer({
+    url: 'https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/Watersheds/FeatureServer/0',
+    ignoreRenderer: true,
+    style: function() {
+        return defaultStyleOptions;
+    }
+});
+watershedLayer.on('click', processWatershed);
+
+var muniLayer = L.esri.featureLayer({
+    url: 'https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/AlleghenyCountyMunicipalBoundaries/FeatureServer/0',
+    ignoreRenderer: true,
+    style: function() {
+        return defaultStyleOptions;
+    }
+});
+muniLayer.on('click', processMuni);
+
+//$('#splashModal').modal('show');
+
+/* populate fields list
 $.getJSON('data/fields.json', function (data) {
 
-    console.log(data.length);
+    //console.log(data.length);
     data.forEach(function (field) {
         var listItem = '<li id = "' + field.name + '" class="list-group-item">'
             + field.title
@@ -129,20 +159,20 @@ $.getJSON('data/fields.json', function (data) {
     //custom functionality for checkboxes
     initCheckboxes();
 });
+*/
 
-//$('#splashModal').modal('show');
-
-//listeners
+/*//listeners
 $('#selectAll').click(function () {
     $(".fieldList li").click();
     listChecked();
 });
+*/
 
 //radio buttons
 $('input[type=radio][name=area]').change(function () {
     //reset all the things
-    muniLayer.hide();
-    hoodLayer.hide();
+    if (map.hasLayer(muniLayer)) {muniLayer.remove();}
+    if (map.hasLayer(watershedLayer)) {watershedLayer.remove();}
     selectLayer.clearLayers();
     $('.leaflet-draw-toolbar').hide();
     if (drawnLayer) {
@@ -155,7 +185,6 @@ $('input[type=radio][name=area]').change(function () {
         flush_selections();
         $('.leaflet-draw-toolbar').show();
         $('.download').attr('disabled', 'disabled');
-
     }
     if (this.value == 'currentView') {
         areaType = 'currentView';
@@ -163,13 +192,13 @@ $('input[type=radio][name=area]').change(function () {
     }
     if (this.value == 'municipality') {
         areaType = 'municipality';
-        muniLayer.show();
+        muniLayer.addTo(map);
         flush_selections();
         $('.download').attr('disabled', 'disabled');
     }
-    if (this.value == 'neighborhood') {
-        areaType = 'neighborhood';
-        hoodLayer.show();
+    if (this.value == 'watershed') {
+        areaType = 'watershed';
+        watershedLayer.addTo(map);
         flush_selections();
         $('.download').attr('disabled', 'disabled');
     }
@@ -229,13 +258,12 @@ $('.download').click(function () {
             alert("Don't forget to select your municipality from the map!");
             return;
         }
-
         data.intersects = mPolygon;
     }
 
-    if (areaType == 'neighborhood') {
+    if (areaType == 'watershed') {
         if(nPolygon == undefined){
-            alert("Don't forget to select your neighborhood from the map!");
+            alert("Don't forget to select your watershed from the map!");
             return;
         }
         data.intersects = nPolygon;
@@ -278,76 +306,53 @@ $('.download').click(function () {
 
 });
 
-//functions
+/**
+ ** functions
+ **/
 
-//when a polygon is clicked in Neighborhood View, download its geojson, etc
-function processMuni(e, latlng, pos, data, layer) {
-    console.log('Muni data', data);
-    var nid = data.cartodb_id;
-    selectLayer.clearLayers();
-    console.log(nid);
-    var sql = new cartodb.SQL({user: 'wprdc'});
-    sql.execute("SELECT the_geom FROM allegheny_county_municipal_boundaries WHERE cartodb_id = {{id}}",
-        {
-            id: data.cartodb_id
-        },
-        {
-            format: 'geoJSON'
-        }
-        )
-        .done(function (data) {
-            console.log(data);
-            selectLayer.addData(data);
-            //setup SQL statement for intersection
-            mPolygon = '(SELECT the_geom FROM allegheny_county_municipal_boundaries WHERE cartodb_id = ' + nid + ')';
-        })
+
+//when a polygon is clicked, get its id and change its style
+
+var previousIds = [];
+
+function processMuni(e) {
+    console.log('selected data', e.latlng);
+    for (var j = 0; j < previousIds.length; j++) {
+        muniLayer.resetStyle(previousIds[j]);
+    }
+    muniLayer.query()
+        .intersects(e.latlng)
+        .ids(function(error, ids){
+            console.log(ids);
+            previousIds = ids;
+            for (var i = 0; i < ids.length; i++) {
+              muniLayer.setFeatureStyle(ids[i], highlitStyleOptions);
+            }
+        });
+}
+
+function processWatershed(e) {
+    console.log('selected data', e.latlng);
+    for (var j = 0; j < previousIds.length; j++) {
+        watershedLayer.resetStyle(previousIds[j]);
+    }
+    watershedLayer.query()
+        .intersects(e.latlng)
+        .ids(function(error, ids){
+            console.log(ids);
+            previousIds = ids;
+            for (var i = 0; i < ids.length; i++) {
+              watershedLayer.setFeatureStyle(ids[i], highlitStyleOptions);
+            }
+        });
 }
 
 
-function processNeighborhood(e, latlng, pos, data, layer) {
-    console.log('Hood data', data);
-    var nid = data.cartodb_id;
-    selectLayer.clearLayers();
-    console.log(nid);
-    var sql = new cartodb.SQL({user: 'wprdc'});
-    sql.execute("SELECT the_geom FROM pittsburgh_neighborhoods WHERE cartodb_id = {{id}}",
-        {
-            id: data.cartodb_id
-        },
-        {
-            format: 'geoJSON'
-        }
-        )
-        .done(function (data) {
-            console.log(data);
-            selectLayer.addData(data);
-            //setup SQL statement for intersection
-            nPolygon = '(SELECT the_geom FROM pittsburgh_neighborhoods WHERE cartodb_id = ' + nid + ')';
-        })
-}
+/**
+ ** map and DOM initialization
+ **/
 
-//turns an array of latLngs into an ST_POLYGONFROMTEXT
-function makeSqlPolygon(coords) {
-    var s = "ST_SETSRID(ST_PolygonFromText(\'POLYGON((";
-    var firstCoord;
-    coords.forEach(function (coord, i) {
-        console.log(coord);
-        s += coord.lng + " " + coord.lat + ",";
-
-        //remember the first coord
-        if (i == 0) {
-            firstCoord = coord;
-        }
-
-        if (i == coords.length - 1) {
-            s += firstCoord.lng + " " + firstCoord.lat;
-        }
-    });
-    s += "))\'),4326)"
-    console.log(s);
-    return s;
-}
-
+/*
 function initCheckboxes() {
     //sweet checkbox list from http://bootsnipp.com/snippets/featured/checked-list-group
     $('.list-group.checked-list-box .list-group-item').each(function () {
@@ -419,7 +424,9 @@ function initCheckboxes() {
         init();
     });
 }
+*/
 
+/*
 function listChecked() {
     var checkedItems = [];
     $(".fieldList li.active").each(function (idx, li) {
@@ -428,6 +435,7 @@ function listChecked() {
     });
     return checkedItems;
 }
+*/
 
 
 $(document).ready(function () {
@@ -452,6 +460,7 @@ $(document).ready(function () {
         }
     });
 
+    /*
     var scrollShadow = (function () {
         var elem, width, height, offset,
             shadowTop, shadowBottom,
@@ -526,4 +535,5 @@ $(document).ready(function () {
     }());
     // start
     scrollShadow.init(".well-inner");
+    */
 });

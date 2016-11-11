@@ -9,33 +9,41 @@
     <meta name="author" content="">
     <link rel="icon" href="./favicon.ico">
 
-    <title>WPRDC Property Assessment Data Downloader</title>
+    <title>3RWW 2013 SUSTAIN Model Results</title>
 
-    <link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <!--link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'-->
 
-
-    <link rel="stylesheet" href="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/themes/css/cartodb.css"/>
+    <!--link rel="stylesheet" href="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/themes/css/cartodb.css"/-->
     <link rel="stylesheet" href="css/leaflet.draw.css">
     <link rel="stylesheet" href="css/styleguide.min.css">
     <link rel="stylesheet" type="text/css" href="css/icons.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+    <!--link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'-->
+
+    <!-- Load Leaflet from CDN-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet-src.js"></script>
+
+    <!-- Load Esri Leaflet from CDN -->
+    <script src="https://unpkg.com/esri-leaflet@2.0.4"></script>
+    <script src="https://unpkg.com/esri-leaflet-vector@1.0.3"></script>
 
     <link rel="icon" type="image/png" href="./favicon.png">
 </head>
 
 <body>
+
 <div class="HeaderFixed HeaderFixed--blue color-white">
     <div class="Grid">
         <div class="Grid-inner Grid-inner--vcenter">
             <div class="Grid-cell Grid-cell--col6">
-                <h1 class="u-iblock u-malign main-title"><strong> <span style="color: #2C9AE9;">wp</span><span
-                        style="color: white;">rdc</span> | Property Information Extractor</strong> BETA</h1>
+                <h1 class="u-iblock u-malign main-title"><strong> <span style="color: #4396E4;">3RWW</span><span
+                        style="color: white;"> EPA SUSTAIN </span></strong>2013 Modeling Results [beta]</h1>
             </div>
             <div class="Grid-cell Grid-cell--col6 clearfix u-txt-right">
                 <nav class="">
                     <ul class="u-ilist">
-                        <li class="u-malign"><a href="https://twitter.com/share" class="twitter-share-button"
+                        <!--li class="u-malign"><a href="https://twitter.com/share" class="twitter-share-button"
                                                 data-url="http://wprdc.github.io/property-information-extractor/"
                                                 data-text="Custom download tool for Allegheny County Property Assessment Data @wprdc"
                                                 data-via="wprdc">Tweet</a>
@@ -48,7 +56,7 @@
                                     fjs.parentNode.insertBefore(js, fjs);
                                 }
                             }(document, 'script', 'twitter-wjs');</script>
-                        </li>
+                        </li-->
                         <li class="u-malign u-lspace-xl">
                             <p class="button button--white">
                                 <a class="js-about" href="#">About</a>
@@ -69,6 +77,7 @@
         </div>
     </div>
 </div>
+
 <div class="Grid-inner Grid-inner--hfull">
     <div class="Grid-cell fill-blue Grid-cell--col8 u-pr">
         <div id="map" class="u-pa">
@@ -105,8 +114,8 @@
                         <li>
                             <label>
                                 <input class="u-iblock u-malign" type="radio" for="option4" name="area"
-                                       value="neighborhood">
-                                <p class="u-iblock u-malign" id="option4"> Neighborhood </p>
+                                       value="watershed">
+                                <p class="u-iblock u-malign" id="option4"> Watershed </p>
                             </label>
                         </li>
                         <li>
@@ -117,7 +126,7 @@
                         </li>
                     </ul>
                 </li>
-                <li class="u-vspace-xxl">
+                <!--li class="u-vspace-xxl">
                     <div class="u-vspace-l clearfix">
                         <div class="u-left">
                             <span class="Number-circle u-txt-center fill fill-dark color-white u-iblock u-malign">2</span>
@@ -133,16 +142,16 @@
                             </div>
                         </div>
                     </div>
-                </li>
+                </li-->
                 <li>
                     <div class="u-vspace-l">
-                        <span class="Number-circle u-txt-center fill fill-dark color-white u-iblock u-malign">3</span>
+                        <span class="Number-circle u-txt-center fill fill-dark color-white u-iblock u-malign">2</span>
                         <h2 class="u-iblock u-malign"><strong>Download!</strong></h2>
                     </div>
                     <ul class="u-ilist u-vspace-xxl">
                         <li>
                             <p class="button button--small button--blue">
-                                <a href="#" id="geojson" class="btn btn-sm btn-success download">geoJson</a>
+                                <a href="#" id="geojson" class="btn btn-sm btn-success download">GeoJSON</a>
                             </p>
                         </li>
                         <li>
@@ -155,11 +164,11 @@
                                 <a href="#" id="shp" class="btn btn-sm btn-success download">Shapefile</a>
                             </p>
                         </li>
-                        <li>
+                        <!--li>
                             <p class="button button--small button--blue">
                                 <a href="#" id="cartodb" class="btn btn-sm btn-success download">Open in CartoDB</a>
                             </p>
-                        </li>
+                        </li-->
                     </ul>
                 </li>
             </ul>
@@ -203,7 +212,7 @@
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.13/cartodb.js"></script>
+<!--script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.13/cartodb.js"></script-->
 <script src="js/leaflet.draw.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.min.js"></script>
