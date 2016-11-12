@@ -1,9 +1,11 @@
-# Property Information Extractor
+# 3RWW EPA SUSTAIN App
 
-Try it for yourself [here](http://wprdc.github.io/property-information-extractor/)!
+This mapping tool is for the exploration and download of 3 Rivers Wet Weather's (3RWW) 2013 results from the EPA System Urban Stormwater Treatment and Analysis Integration (SUSTAIN) model for Allegheny County. The map is intended to help municipalities acquire the data and create the maps required for compliance with certain [wet weather regulations](http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations). 
 
-The Property Information Extractor is a data downloading tool based on Chris Whong's [plutoplus](https://github.com/chriswhong/plutoplus).  The Property Data Downloader provides a simple and intuitive interface to help people access property data from the [Western Pennsylvania Regional Data Center](http://www.wprdc.org) within an Allegheny County municipality or City of Pittsburgh Neighborhood of their choosing.
+The SUSTAIN modeling work was conducted by Michael Baker Corp. in 2013. More info on SUSTAIN can be found on the [US EPA website]( https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain). Contact [bdutton@3rww.org](mailto:bdutton@3rww.org) for more information about the model.
 
-Feedback from participants at the Regional Data Center's [property data user group meeting](http://www.wprdc.org/news/property-data-user-group-meeting-recap/) in March, 2016 was the impetus for our adopting this tool originally built for New York parcel data. Participants wanted to be able to download assessment and other data by neighborhood. Working with large datasets poses a problem for many users. The Allegheny County assessment database contains over 550,000 rows and posed a barrier to widespread data use. 
+---
 
-The Property Information Extractor allows users to quickly download data in several formats, and also allows the data to be directly open in CartoDB, a popular Web-mapping tool. Our road map for this tool involves adding aditional datasets and geographies. In partnership with the Carnegie Library of Pittsburgh, the Regional Data Center will offer training to data users in a number of Web mapping software packages as part of it's Data 101 training series beginning in May, 2016.  
+This software is based on the [WPRDC's Property Information Extractor](https://github.com/WPRDC/property-information-extractor), which was based on Chris Whong's [plutoplus](https://github.com/chriswhong/plutoplus). In adapting those tools for this project, we had to make a few big changes under the hood. Since 3RWW is using an Esri mapping stack, this version swaps out the [CARTO JS javascript library](https://carto.com/docs/carto-engine/carto-js/) for the [Esri-Leaflet javascript library](https://esri.github.io/esri-leaflet). CartoJS is based on Leaflet, making that transition somewhat straightforward.
+
+This is still a work-in-progress. Download/extraction functionality still needs to be reimplemented in a server-side geoprocessing script using either a FOSS4G library or an ArcGIS Server Geoprocessing service.
