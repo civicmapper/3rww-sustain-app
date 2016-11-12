@@ -3,6 +3,8 @@ var drawnLayer;
 var backdrop, muniLayer;
 var nPolygon;
 var mPolygon;
+var previousIds = [];
+var selected;
 
 //initialize map
 var map = new L.Map('map', {
@@ -12,7 +14,7 @@ var map = new L.Map('map', {
 
 //L.esri.basemapLayer('Gray').addTo(map);
 //L.esri.basemapLayer('GrayLabels').addTo(map);
-L.esri.Vector.basemap('Gray').addTo(map);
+//L.esri.Vector.basemap('Gray').addTo(map);
 
 
 var selectLayer = L.geoJson().addTo(map); //add empty geojson layer for selections
@@ -94,30 +96,82 @@ cartodb.createLayer(map, layerUrl)
     });
 */
 
-/*L.esri.dynamicMapLayer({
-    url: 'http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer'
-}).addTo(map);*/
-
+/** Style Options for Layers
+ **/
 var defaultStyleOptions = {color: '#4396E4', weight: 3, opacity: 0.6, fillOpacity:0};
 var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity: 0.6, fillColor: '#4396E4' };
 
+/** SUSTAIN Layer (Map Service)
+ **/
+/*
+var sustainLayer = L.esri.dynamicMapLayer({
+    url: 'http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer'
+}).addTo(map);
+*/
+
+var sustainLayer = L.esri.tiledMapLayer({
+    url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer'
+}).addTo(map);
+
+map.on('click', function(e){
+    var results = [];
+    for (var i = 0; i < 6; i++) {
+        L.esri.query({
+          url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
+        })
+        .intersects(e.latlng)
+        .layer(i)
+        .run(function(error, featureCollection) {
+            if (featureCollection.features) {
+                console.log(featureCollection.features.properties);
+            }
+        });
+    }
+});
+
+
+/** Watershed Layer (Feature Service)
+ **/
+var watershedLayerSelected;
 var watershedLayer = L.esri.featureLayer({
     url: 'https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/Watersheds/FeatureServer/0',
     ignoreRenderer: true,
     style: function() {
         return defaultStyleOptions;
     }
-});
-watershedLayer.on('click', processWatershed);
+}).on('click', function(e) {
+    if (watershedLayerSelected) {
+        e.target.resetStyle(watershedLayerSelected);
+    }
+    watershedLayerSelected = e.layer;
+    watershedLayerSelected.setStyle(highlitStyleOptions);
+    });
 
+watershedLayer.bindPopup(function(evt) {
+    return L.Util.template('<p>{DESCR}</p>', evt.feature.properties);
+});
+
+/** Municipal Layer (Feature Service)
+ **/
+var muniLayerSelected;
 var muniLayer = L.esri.featureLayer({
     url: 'https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/AlleghenyCountyMunicipalBoundaries/FeatureServer/0',
     ignoreRenderer: true,
     style: function() {
         return defaultStyleOptions;
     }
+}).on('click', function(e) {
+    if (muniLayerSelected) {
+        e.target.resetStyle(muniLayerSelected);
+    }
+    muniLayerSelected = e.layer;
+    muniLayerSelected.setStyle(highlitStyleOptions);
+    });
+
+muniLayer.bindPopup(function(evt) {
+    return L.Util.template('<p>{NAME}</p>', evt.feature.properties);
 });
-muniLayer.on('click', processMuni);
+
 
 //$('#splashModal').modal('show');
 
@@ -305,47 +359,6 @@ $('.download').click(function () {
 
 
 });
-
-/**
- ** functions
- **/
-
-
-//when a polygon is clicked, get its id and change its style
-
-var previousIds = [];
-
-function processMuni(e) {
-    console.log('selected data', e.latlng);
-    for (var j = 0; j < previousIds.length; j++) {
-        muniLayer.resetStyle(previousIds[j]);
-    }
-    muniLayer.query()
-        .intersects(e.latlng)
-        .ids(function(error, ids){
-            console.log(ids);
-            previousIds = ids;
-            for (var i = 0; i < ids.length; i++) {
-              muniLayer.setFeatureStyle(ids[i], highlitStyleOptions);
-            }
-        });
-}
-
-function processWatershed(e) {
-    console.log('selected data', e.latlng);
-    for (var j = 0; j < previousIds.length; j++) {
-        watershedLayer.resetStyle(previousIds[j]);
-    }
-    watershedLayer.query()
-        .intersects(e.latlng)
-        .ids(function(error, ids){
-            console.log(ids);
-            previousIds = ids;
-            for (var i = 0; i < ids.length; i++) {
-              watershedLayer.setFeatureStyle(ids[i], highlitStyleOptions);
-            }
-        });
-}
 
 
 /**
