@@ -5,21 +5,25 @@ var nPolygon;
 var mPolygon;
 var previousIds = [];
 var selected;
+var gi = {'BR': 'Bioretention', 'CW': 'Constructed Wetland', 'GS':'Grassed Swales', 'IB':'Infiltration Basin', 'PP':'Porous Pavement', 'VF':'Vegetated Filterstrip'};
 
-//initialize map
+/** INITIALIZE MAP
+ **/
 var map = new L.Map('map', {
     center: [40.4016274,-79.9315583],
     zoom: 15
 });
 
+/** BASE MAPS
+ **/
 //L.esri.basemapLayer('Gray').addTo(map);
 //L.esri.basemapLayer('GrayLabels').addTo(map);
-//L.esri.Vector.basemap('Gray').addTo(map);
+L.esri.Vector.basemap('Gray').addTo(map);
 
+/** leaflet draw stuff
+ **/
 
 var selectLayer = L.geoJson().addTo(map); //add empty geojson layer for selections
-
-//leaflet draw stuff
 
 var options = {
     position: 'topright',
@@ -50,6 +54,7 @@ map.addControl(drawControl);
 $('.leaflet-draw-toolbar').hide();
 
 var customPolygon;
+
 map.on('draw:created', function (e) {
     console.log('draw:created');
     //hide the arrow
@@ -76,59 +81,66 @@ map.on('draw:drawstart', function (e) {
     }
 });
 
-/* SWAP CODE BELOW FOR ESRI LEAFLET MAP STUFF
-//add cartodb named map
-var layerUrl = 'https://wprdc.cartodb.com/api/v2/viz/24843ea8-f778-11e5-a7c9-0e674067d321/viz.json';
 
-cartodb.createLayer(map, layerUrl)
-    .addTo(map)
-    .on('done', function (layer) {
-        backdrop = layer.getSubLayer(0);
-        backdrop.setInteraction(false);
-        //TODO: build array of selction layers based off JSON file
-        muniLayer = layer.getSubLayer(1);
-        watershedLayer = layer.getSubLayer(2);
-
-        muniLayer.hide();  //hide municipality polygons
-        watershedLayer.hide();
-        muniLayer.on('featureClick', processMuni);
-        watershedLayer.on('featureClick', processWatershed);
-    });
-*/
-
-/** Style Options for Layers
+/** Style Options for Selected LayersLayers
  **/
 var defaultStyleOptions = {color: '#4396E4', weight: 3, opacity: 0.6, fillOpacity:0};
 var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity: 0.6, fillColor: '#4396E4' };
 
-/** SUSTAIN Layer (Map Service)
+/** SUSTAIN Layer
  **/
-/*
+
+/** SUSTAIN Map Service
+ ** this option provides both rendering and querying capability, but cannot be hosted on ArcGIS Online.
+ ** (not using this one)
+
 var sustainLayer = L.esri.dynamicMapLayer({
     url: 'http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer'
 }).addTo(map);
+
 */
 
+/** SUSTAIN Tile Service
+ ** This option provides rendering capability only, from a pre-rendered tile cache on ArcGIS Online
+ **/
 var sustainLayer = L.esri.tiledMapLayer({
-    url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer'
+    url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer',
 }).addTo(map);
 
-map.on('click', function(e){
-    var results = [];
+/** querySustainLayer()
+ ** this function queries the SUSTAIN Map Service to provide information for a map pop-up window
+ **/
+function querySustainLayer(e) {
+    // ** a better data structure will make a lot of what follows obsolete. For now this will do...**
+    // the SUSTAIN Map Service is actually six layers, 0-5. We have to query each..
     for (var i = 0; i < 6; i++) {
         L.esri.query({
           url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
         })
         .intersects(e.latlng)
         .layer(i)
-        .run(function(error, featureCollection) {
-            if (featureCollection.features) {
-                console.log(featureCollection.features.properties);
+        .run(function (error, featureCollection) {
+            // the query will always return a + response; check if there are actually features
+            if (featureCollection.features.length > 0) {
+                // if there are, get the fields they have 0 because of the way the data is structured,
+                // type is reflected in the field name (row value is a boolean)
+                var r = featureCollection.features[0];
+                var fields = Object.keys(r.properties);
+                // compare fields against a lookup to determine which GI we've actually returned.
+                Object.keys(gi).forEach(function(e) {
+                    if ($.inArray(e, fields) > -1) {
+                        console.log(gi[e]);
+                    }
+                });
             }
         });
     }
-});
+}
 
+// runs querySustainLayer() on a map click
+map.on('click', function(e){
+    querySustainLayer(e);
+});
 
 /** Watershed Layer (Feature Service)
  **/
@@ -140,6 +152,8 @@ var watershedLayer = L.esri.featureLayer({
         return defaultStyleOptions;
     }
 }).on('click', function(e) {
+    // on click, highlight the selected polygon
+    querySustainLayer(e);
     if (watershedLayerSelected) {
         e.target.resetStyle(watershedLayerSelected);
     }
@@ -161,6 +175,8 @@ var muniLayer = L.esri.featureLayer({
         return defaultStyleOptions;
     }
 }).on('click', function(e) {
+    // on click, highlight the selected polygon
+    querySustainLayer(e);
     if (muniLayerSelected) {
         e.target.resetStyle(muniLayerSelected);
     }
@@ -172,17 +188,41 @@ muniLayer.bindPopup(function(evt) {
     return L.Util.template('<p>{NAME}</p>', evt.feature.properties);
 });
 
+/** Info Control - takes a the place of a pop-up for the muni and watershed layers
+ **
+
+var info = L.control();
+
+info.onAdd = function (map) {
+    this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+    this.update();
+    return this._div;
+};
+
+// method that we will use to update the control based on feature properties passed
+info.update = function (props) {
+    this._div.innerHTML = L.Util.template('<p>{DESCR}</p>', props);
+    /*
+    this._div.innerHTML = '<h4>US Population Density</h4>' +  (props ?
+        '<b>' + props.name + '</b><br />' + props.density + ' people / mi<sup>2</sup>'
+        : 'Hover over a state');
+    */
+    /*
+};
+
+info.addTo(map);
+*/
+
 
 //$('#splashModal').modal('show');
 
-/* populate fields list
+/** populate fields list
+ **/
 $.getJSON('data/fields.json', function (data) {
 
     //console.log(data.length);
     data.forEach(function (field) {
-        var listItem = '<li id = "' + field.name + '" class="list-group-item">'
-            + field.title
-            + '<span class="glyphicon glyphicon-info-sign icon-right" aria-hidden="true"></span></li>'
+        var listItem = '<li id = "' + field.name + '" class="list-group-item">' + field.title + '<span class="glyphicon glyphicon-info-sign icon-right" aria-hidden="true"></span></li>';
 
         $('.fieldList').append(listItem);
         $('#' + field.name).data("description", field.description);
@@ -213,14 +253,14 @@ $.getJSON('data/fields.json', function (data) {
     //custom functionality for checkboxes
     initCheckboxes();
 });
-*/
 
-/*//listeners
+
+//listeners
 $('#selectAll').click(function () {
     $(".fieldList li").click();
     listChecked();
 });
-*/
+
 
 //radio buttons
 $('input[type=radio][name=area]').change(function () {
@@ -365,14 +405,13 @@ $('.download').click(function () {
  ** map and DOM initialization
  **/
 
-/*
 function initCheckboxes() {
     //sweet checkbox list from http://bootsnipp.com/snippets/featured/checked-list-group
     $('.list-group.checked-list-box .list-group-item').each(function () {
 
         // Settings
         var $widget = $(this),
-            $checkbox = $('<input type="checkbox" class="hidden" />'),
+            $checkbox = $('<input hidden type="checkbox" class="hidden" />'),
             color = ($widget.data('color') ? $widget.data('color') : "primary"),
             style = ($widget.data('style') == "button" ? "btn-" : "list-group-item-"),
             settings = {
@@ -437,9 +476,9 @@ function initCheckboxes() {
         init();
     });
 }
-*/
 
-/*
+
+
 function listChecked() {
     var checkedItems = [];
     $(".fieldList li.active").each(function (idx, li) {
@@ -448,7 +487,7 @@ function listChecked() {
     });
     return checkedItems;
 }
-*/
+
 
 
 $(document).ready(function () {
