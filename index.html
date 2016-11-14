@@ -64,12 +64,8 @@
                         </li>
                         <li class="u-malign u-lspace-xl">
                             <p class="button button--white">
-                                <a href="http://github.com/WPRDC/property-information-extractor">Fork Me on Github</a>
+                                <a href="https://github.com/civicmapper/3rww-sustain-app">Fork Me on Github</a>
                             </p>
-                        </li>
-                        <li class="u-malign u-lspace-xl">
-                            <p class="button button--white">
-                                <a href="http://github.com/chriswhong/plutoplus">The Original</a>
                         </li>
                     </ul>
                 </nav>
@@ -180,36 +176,24 @@
 <div id="modal" class="u-valign u-txt-center" style="display: none;">
     <div class="modal-inner u-iblock u-malign u-padding-xxl">
         <div class="modal-header navbar-custom u-vspace-xxl">
-            <h2><strong>P</strong>roperty <strong>I</strong>nformation <strong>E</strong>xtractor</h2>
-            <h5>Get yourself a slice of this data!</h5>
+            <h1>3RWW EPA SUSTAIN</h1>
+            <h2>2013 Green Stormwater Infrastructure (GSI) Suitability Model Results</h2>
+            <h3><em>beta</em></h3>
         </div>
         <div class="modal-body u-txt-left">
-
-            <p class="u-vspace-l">You can use this tool to filter and download Allegheny County Property Assessment data
-                hosted on
-                the <a href="http://www.wprdc.org">WPRDC</a>. You can select a municipality, a neighborhood or even draw
-                the region you'd like data for.
-            </p>
-
-            <p class="u-vspace-l">Currently only property assessment data is available, but we plan to link more
-                datasets in the future!
-            </p>
-
-            <p class="u-vspace-l"><a href='https://data.wprdc.org/dataset/property-assessments'>Get the entire data set
-                on the WPRDC.</a></p>
-
-            <p class="u-vspace-l">This project is <strong>heavily</strong> based on Chris Whong's <a
-                    href="http://chriswhong.github.io/plutoplus/"> NYC Pluto data Downloader</a>. You can read his
-                write-up on his project at <a href="http://www.chriswhong.com">chriswhong.com</a>.
-                Support open Data!</p>
+            <p>This mapping tool is for the exploration and download of 3 Rivers Wet Weather's (3RWW) 2013 results from the EPA System Urban Stormwater Treatment and Analysis Integration (SUSTAIN) model for Allegheny County. The map is intended to help municipalities acquire the data and create the maps required for compliance with certain <a href="http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations" data-original-href="http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations">wet weather regulations</a>.</p>
+            <br>
+            <p>The SUSTAIN modeling work was conducted by Michael Baker Corp. in 2013. More info on SUSTAIN can be found on the <a href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain" data-original-href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain">US EPA website</a>. Contact <a href="mailto:bdutton@3rww.org" data-original-href="mailto:bdutton@3rww.org">bdutton@3rww.org</a> for more information about the model.</p>
+            <br><hr><br>
+            <p>This software is based on the <a href="https://github.com/WPRDC/property-information-extractor" data-original-href="https://github.com/WPRDC/property-information-extractor">WPRDC's Property Information Extractor</a>, which was based on Chris Whong's <a href="https://github.com/chriswhong/plutoplus" data-original-href="https://github.com/chriswhong/plutoplus">plutoplus</a>. In adapting those tools for this project, we had to make a few big changes under the hood. Since 3RWW is using an Esri mapping stack, this version swaps out the <a href="https://carto.com/docs/carto-engine/carto-js/" data-original-href="https://carto.com/docs/carto-engine/carto-js/">CARTO JS javascript library</a> for the <a href="https://esri.github.io/esri-leaflet" data-original-href="https://esri.github.io/esri-leaflet">Esri-Leaflet javascript library</a>. CartoJS is based on Leaflet, making that transition somewhat straightforward.</p>
+            <br>
+            <p>This is still a work-in-progress. Download/extraction functionality still needs to be reimplemented in a server-side geoprocessing script using either a FOSS4G library or an ArcGIS Server Geoprocessing service.</p>
         </div>
     </div>
 </div>
 
-<div id="infoWindow">ZONING, ALL COMPONENTS 1 consists of the zoning classification occupying the greatest percentage of
-    the tax lot's area and a commercial overlay and special purpose district and limited height district assigned to the
-    tax lot
-</div>
+<!--div id="infoWindow">...
+</div-->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 <!--script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.13/cartodb.js"></script-->

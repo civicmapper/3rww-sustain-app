@@ -87,7 +87,7 @@ map.on('draw:drawstart', function (e) {
 var defaultStyleOptions = {color: '#4396E4', weight: 3, opacity: 0.6, fillOpacity:0};
 var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity: 0.6, fillColor: '#4396E4' };
 
-/** SUSTAIN Layer
+/** SUSTAIN Layers and functions
  **/
 
 /** SUSTAIN Map Service
@@ -189,7 +189,7 @@ muniLayer.bindPopup(function(evt) {
 });
 
 /** Info Control - takes a the place of a pop-up for the muni and watershed layers
- **
+ **/
 
 var info = L.control();
 
@@ -200,6 +200,7 @@ info.onAdd = function (map) {
 };
 
 // method that we will use to update the control based on feature properties passed
+/*
 info.update = function (props) {
     this._div.innerHTML = L.Util.template('<p>{DESCR}</p>', props);
     /*
@@ -209,9 +210,10 @@ info.update = function (props) {
     */
     /*
 };
+*/
 
 info.addTo(map);
-*/
+
 
 
 //$('#splashModal').modal('show');
