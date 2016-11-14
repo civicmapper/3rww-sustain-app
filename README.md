@@ -1,6 +1,8 @@
 # 3RWW EPA SUSTAIN App
 
-This mapping tool is for the exploration and download of 3 Rivers Wet Weather's (3RWW) 2013 results from the EPA System Urban Stormwater Treatment and Analysis Integration (SUSTAIN) model for Allegheny County. The map is intended to help municipalities acquire the data and create the maps required for compliance with certain [wet weather regulations](http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations). 
+*currently unpublished*
+
+This mapping tool is for the exploration and download of 3 Rivers Wet Weather's (3RWW) 2013 results from the EPA System Urban Stormwater Treatment and Analysis Integration (SUSTAIN) model for Allegheny County. The map is intended to help municipalities acquire the data and create the maps required for compliance with certain [wet weather regulations](http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations).
 
 The SUSTAIN modeling work was conducted by Michael Baker Corp. in 2013. More info on SUSTAIN can be found on the [US EPA website]( https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain). Contact [bdutton@3rww.org](mailto:bdutton@3rww.org) for more information about the model.
 
