@@ -91,21 +91,22 @@ var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity:
 /** SUSTAIN Map Service
  ** this option provides both rendering and querying capability, but cannot be hosted on ArcGIS Online.
  ** (not using this one)
- **/
+ **
 
 var sustainLayer = L.esri.dynamicMapLayer({
     url: 'http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer'
 }).addTo(map);
-
+*/
 
 
 /** SUSTAIN Tile Service
  ** This option provides rendering capability only, from a pre-rendered tile cache on ArcGIS Online
+ **/
 
 var sustainLayer = L.esri.tiledMapLayer({
     url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer',
 }).addTo(map);
- **/
+ 
 
 /** querySustainLayer()
  ** this function queries the SUSTAIN Map Service to provide information for a map pop-up window
