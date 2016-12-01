@@ -9,33 +9,41 @@
     <meta name="author" content="">
     <link rel="icon" href="./favicon.ico">
 
-    <title>WPRDC Property Assessment Data Downloader</title>
+    <title>3RWW 2013 SUSTAIN Model Results</title>
 
-    <link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'>
+    <!--link href='https://fonts.googleapis.com/css?family=Lato:300,400,700' rel='stylesheet' type='text/css'-->
 
-
-    <link rel="stylesheet" href="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/themes/css/cartodb.css"/>
+    <!--link rel="stylesheet" href="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/themes/css/cartodb.css"/-->
     <link rel="stylesheet" href="css/leaflet.draw.css">
     <link rel="stylesheet" href="css/styleguide.min.css">
     <link rel="stylesheet" type="text/css" href="css/icons.css">
     <link rel="stylesheet" href="css/style.css">
-    <link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'>
+    <!--link href='https://fonts.googleapis.com/css?family=Titillium+Web' rel='stylesheet' type='text/css'-->
+
+    <!-- Load Leaflet from CDN-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet-src.js"></script>
+
+    <!-- Load Esri Leaflet from CDN -->
+    <script src="https://unpkg.com/esri-leaflet@2.0.4"></script>
+    <script src="https://unpkg.com/esri-leaflet-vector@1.0.3"></script>
 
     <link rel="icon" type="image/png" href="./favicon.png">
 </head>
 
 <body>
+
 <div class="HeaderFixed HeaderFixed--blue color-white">
     <div class="Grid">
         <div class="Grid-inner Grid-inner--vcenter">
             <div class="Grid-cell Grid-cell--col6">
-                <h1 class="u-iblock u-malign main-title"><strong> <span style="color: #2C9AE9;">wp</span><span
-                        style="color: white;">rdc</span> | Property Information Extractor</strong> BETA</h1>
+                <h1 class="u-iblock u-malign main-title"><strong> <span style="color: #4396E4;">3RWW</span><span
+                        style="color: white;"> EPA SUSTAIN </span></strong>2013 Green Stormwater Infrastructure (GSI) Suitability Model Results [beta]</h1>
             </div>
             <div class="Grid-cell Grid-cell--col6 clearfix u-txt-right">
                 <nav class="">
                     <ul class="u-ilist">
-                        <li class="u-malign"><a href="https://twitter.com/share" class="twitter-share-button"
+                        <!--li class="u-malign"><a href="https://twitter.com/share" class="twitter-share-button"
                                                 data-url="http://wprdc.github.io/property-information-extractor/"
                                                 data-text="Custom download tool for Allegheny County Property Assessment Data @wprdc"
                                                 data-via="wprdc">Tweet</a>
@@ -48,7 +56,7 @@
                                     fjs.parentNode.insertBefore(js, fjs);
                                 }
                             }(document, 'script', 'twitter-wjs');</script>
-                        </li>
+                        </li-->
                         <li class="u-malign u-lspace-xl">
                             <p class="button button--white">
                                 <a class="js-about" href="#">About</a>
@@ -56,12 +64,8 @@
                         </li>
                         <li class="u-malign u-lspace-xl">
                             <p class="button button--white">
-                                <a href="http://github.com/WPRDC/property-information-extractor">Fork Me on Github</a>
+                                <a href="https://github.com/civicmapper/3rww-sustain-app">Fork Me on Github</a>
                             </p>
-                        </li>
-                        <li class="u-malign u-lspace-xl">
-                            <p class="button button--white">
-                                <a href="http://github.com/chriswhong/plutoplus">The Original</a>
                         </li>
                     </ul>
                 </nav>
@@ -69,6 +73,7 @@
         </div>
     </div>
 </div>
+
 <div class="Grid-inner Grid-inner--hfull">
     <div class="Grid-cell fill-blue Grid-cell--col8 u-pr">
         <div id="map" class="u-pa">
@@ -105,8 +110,8 @@
                         <li>
                             <label>
                                 <input class="u-iblock u-malign" type="radio" for="option4" name="area"
-                                       value="neighborhood">
-                                <p class="u-iblock u-malign" id="option4"> Neighborhood </p>
+                                       value="watershed">
+                                <p class="u-iblock u-malign" id="option4"> Watershed </p>
                             </label>
                         </li>
                         <li>
@@ -121,7 +126,7 @@
                     <div class="u-vspace-l clearfix">
                         <div class="u-left">
                             <span class="Number-circle u-txt-center fill fill-dark color-white u-iblock u-malign">2</span>
-                            <h2 class="u-iblock u-malign"><strong>Choose Columns</strong></h2>
+                            <h2 class="u-iblock u-malign"><strong>Choose Green Stormwater Infrastructure layers to download</strong></h2>
                         </div>
                         <p class="u-right"><a href="#" id="selectAll">Select All</a></p>
                     </div>
@@ -142,7 +147,7 @@
                     <ul class="u-ilist u-vspace-xxl">
                         <li>
                             <p class="button button--small button--blue">
-                                <a href="#" id="geojson" class="btn btn-sm btn-success download">geoJson</a>
+                                <a href="#" id="geojson" class="btn btn-sm btn-success download">GeoJSON</a>
                             </p>
                         </li>
                         <li>
@@ -157,7 +162,7 @@
                         </li>
                         <li>
                             <p class="button button--small button--blue">
-                                <a href="#" id="cartodb" class="btn btn-sm btn-success download">Open in CartoDB</a>
+                                <a href="#" id="dwg" class="btn btn-sm btn-success download">DWG</a>
                             </p>
                         </li>
                     </ul>
@@ -171,39 +176,27 @@
 <div id="modal" class="u-valign u-txt-center" style="display: none;">
     <div class="modal-inner u-iblock u-malign u-padding-xxl">
         <div class="modal-header navbar-custom u-vspace-xxl">
-            <h2><strong>P</strong>roperty <strong>I</strong>nformation <strong>E</strong>xtractor</h2>
-            <h5>Get yourself a slice of this data!</h5>
+            <h1>3RWW EPA SUSTAIN</h1>
+            <h2>2013 Green Stormwater Infrastructure (GSI) Suitability Model Results</h2>
+            <h3><em>beta</em></h3>
         </div>
         <div class="modal-body u-txt-left">
-
-            <p class="u-vspace-l">You can use this tool to filter and download Allegheny County Property Assessment data
-                hosted on
-                the <a href="http://www.wprdc.org">WPRDC</a>. You can select a municipality, a neighborhood or even draw
-                the region you'd like data for.
-            </p>
-
-            <p class="u-vspace-l">Currently only property assessment data is available, but we plan to link more
-                datasets in the future!
-            </p>
-
-            <p class="u-vspace-l"><a href='https://data.wprdc.org/dataset/property-assessments'>Get the entire data set
-                on the WPRDC.</a></p>
-
-            <p class="u-vspace-l">This project is <strong>heavily</strong> based on Chris Whong's <a
-                    href="http://chriswhong.github.io/plutoplus/"> NYC Pluto data Downloader</a>. You can read his
-                write-up on his project at <a href="http://www.chriswhong.com">chriswhong.com</a>.
-                Support open Data!</p>
+            <p>This mapping tool is for the exploration and download of 3 Rivers Wet Weather's (3RWW) 2013 results from the EPA System Urban Stormwater Treatment and Analysis Integration (SUSTAIN) model for Allegheny County. The map is intended to help municipalities acquire the data and create the maps required for compliance with certain <a href="http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations" data-original-href="http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations">wet weather regulations</a>.</p>
+            <br>
+            <p>The SUSTAIN modeling work was conducted by Michael Baker Corp. in 2013. More info on SUSTAIN can be found on the <a href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain" data-original-href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain">US EPA website</a>. Contact <a href="mailto:bdutton@3rww.org" data-original-href="mailto:bdutton@3rww.org">bdutton@3rww.org</a> for more information about the model.</p>
+            <br><hr><br>
+            <p>This software is based on the <a href="https://github.com/WPRDC/property-information-extractor" data-original-href="https://github.com/WPRDC/property-information-extractor">WPRDC's Property Information Extractor</a>, which was based on Chris Whong's <a href="https://github.com/chriswhong/plutoplus" data-original-href="https://github.com/chriswhong/plutoplus">plutoplus</a>. In adapting those tools for this project, we had to make a few big changes under the hood. Since 3RWW is using an Esri mapping stack, this version swaps out the <a href="https://carto.com/docs/carto-engine/carto-js/" data-original-href="https://carto.com/docs/carto-engine/carto-js/">CARTO JS javascript library</a> for the <a href="https://esri.github.io/esri-leaflet" data-original-href="https://esri.github.io/esri-leaflet">Esri-Leaflet javascript library</a>. CartoJS is based on Leaflet, making that transition somewhat straightforward.</p>
+            <br>
+            <p>This is still a work-in-progress. Download/extraction functionality still needs to be reimplemented in a server-side geoprocessing script using either a FOSS4G library or an ArcGIS Server Geoprocessing service.</p>
         </div>
     </div>
 </div>
 
-<div id="infoWindow">ZONING, ALL COMPONENTS 1 consists of the zoning classification occupying the greatest percentage of
-    the tax lot's area and a commercial overlay and special purpose district and limited height district assigned to the
-    tax lot
-</div>
+<!--div id="infoWindow">...
+</div-->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-<script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.13/cartodb.js"></script>
+<!--script src="https://cartodb-libs.global.ssl.fastly.net/cartodb.js/v3/3.13/cartodb.js"></script-->
 <script src="js/leaflet.draw.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.3/handlebars.min.js"></script>
