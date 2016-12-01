@@ -14,17 +14,11 @@ var map = new L.Map('map', {
     zoom: 15
 });
 
-<<<<<<< HEAD
-L.tileLayer('http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions">CartoDB</a>'
-}).addTo(map);
-=======
 /** BASE MAPS
  **/
 //L.esri.basemapLayer('Gray').addTo(map);
 //L.esri.basemapLayer('GrayLabels').addTo(map);
 L.esri.Vector.basemap('Gray').addTo(map);
->>>>>>> refs/remotes/origin/master
 
 /** leaflet draw stuff
  **/
