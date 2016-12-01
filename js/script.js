@@ -79,26 +79,6 @@ map.on('draw:drawstart', function (e) {
     }
 });
 
-<<<<<<< HEAD
-//add cartodb named map
-var layerUrl = 'https://wprdc.carto.com/api/v2/viz/24843ea8-f778-11e5-a7c9-0e674067d321/viz.json';
-
-cartodb.createLayer(map, layerUrl)
-    .addTo(map)
-    .on('done', function (layer) {
-        backdrop = layer.getSubLayer(0);
-        backdrop.setInteraction(false);
-        //TODO: build array of selction layers based off JSON file
-        muniLayer = layer.getSubLayer(1);
-        hoodLayer = layer.getSubLayer(2);
-        //hoodLayer.setInteractivity("cartodb_id, hood");
-        muniLayer.hide();  //hide municipality polygons
-        hoodLayer.hide();
-        console.log(hoodLayer);
-        muniLayer.on('featureClick', processMuni);
-        hoodLayer.on('featureClick', processNeighborhood);
-=======
-
 /** Style Options for Selected LayersLayers
  **/
 var defaultStyleOptions = {color: '#4396E4', weight: 3, opacity: 0.6, fillOpacity:0};
@@ -110,21 +90,21 @@ var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity:
 /** SUSTAIN Map Service
  ** this option provides both rendering and querying capability, but cannot be hosted on ArcGIS Online.
  ** (not using this one)
- **/
+ **
 
 var sustainLayer = L.esri.dynamicMapLayer({
     url: 'http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer'
 }).addTo(map);
-
+*/
 
 
 /** SUSTAIN Tile Service
  ** This option provides rendering capability only, from a pre-rendered tile cache on ArcGIS Online
+ **/
 
 var sustainLayer = L.esri.tiledMapLayer({
     url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer',
 }).addTo(map);
- **/
 
 /** querySustainLayer()
  ** this function queries the SUSTAIN Map Service to provide information for a map pop-up window
