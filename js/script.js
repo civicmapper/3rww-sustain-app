@@ -10,8 +10,9 @@ var gi = {'BR': 'Bioretention', 'CW': 'Constructed Wetland', 'GS':'Grassed Swale
 /** INITIALIZE MAP
  **/
 var map = new L.Map('map', {
-    center: [40.4016274,-79.9315583],
-    zoom: 15
+    //center: [40.4016274,-79.9315583],
+    center: [40.4448373,-80.0088122],
+    zoom: 10
 });
 
 /** BASE MAPS
@@ -179,10 +180,18 @@ map.on('click', function(e){
             if (queriesRemaining <= 0) {
                 console.log(results);
                 // make the PopUp; default content if nothing returned by query
-                var content = "(No SUSTAIN results for this location)";
-                if (results.length > 0) {
-                    content = '<h4>This point is suitable for:</h4><hr>' + makePopUp(results);
+                var content;
+                if (map.getZoom() > 14) {
+                    if (results.length > 0) {
+                        content = '<h4>This point is suitable for:</h4><hr>' + makePopUp(results);
+                    } else {
+                        content = "No SUSTAIN results for this location";
+                    }
+                } else {
+                    content = "Zoom in further to see SUSTAIN results for this location";    
                 }
+                
+
                 // set PopUp location and content, and open it on the map
                 sustainPopup
                 .setLatLng(e.latlng)
@@ -358,9 +367,25 @@ var flush_selections = function(){
     mPolygon = undefined;
 };
 
+
+var myService = L.esri.GP.service({
+    url: "https://elevation.arcgis.com/arcgis/rest/services/Tools/ElevationSync/GPServer/Profile",
+    useCors:true
+  });
+var gpTask = myService.createTask();
+
 //runs when any of the download buttons is clicked
 $('.download').click(function () {
     alert('Download functionality is not yet enabled.');
+    /*
+    gpTask.on('initialized', function(){
+      gpTask.setParam("inputFeature", polyline.toGeoJSON());
+      gpTask.run(function(error, geojson, response){
+        console.log("response");
+      });
+    });
+    */
+    
     /*
 
     var data = {};
