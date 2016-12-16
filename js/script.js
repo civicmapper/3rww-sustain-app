@@ -1,30 +1,51 @@
+/** ----------------------------------------------------------------------------
+ ** SOME GLOBAL VARIABLES
+ **/
+
+// variables for managing clipping layers
 var areaType = 'currentView';
+var customPolygon;
 var drawnLayer;
-var backdrop, muniLayer;
-var nPolygon;
-var mPolygon;
+// variables for managing layer selections
 var previousIds = [];
 var selected;
-var gi = {'BR': 'Bioretention', 'CW': 'Constructed Wetland', 'GS':'Grassed Swales', 'IB':'Infiltration Basin', 'PP':'Porous Pavement', 'VF':'Vegetated Filterstrip'};
+// lookup for generating labels from data
+var gi = {
+    'BR': 'Bioretention',
+    'CW': 'Constructed Wetland',
+    'GS': 'Grassed Swales',
+    'IB': 'Infiltration Basin',
+    'PP': 'Porous Pavement',
+    'VF': 'Vegetated Filterstrip'
+};
+
+/** ----------------------------------------------------------------------------
+ ** SPLASH SCREEN
+ **/
+
+//$('#splashModal').modal('show');
+
+/** ----------------------------------------------------------------------------
+ ** LEAFLET MAP INITIALIZATION
+ **/
 
 /** INITIALIZE MAP
  **/
 var map = new L.Map('map', {
-    //center: [40.4016274,-79.9315583],
-    center: [40.4448373,-80.0088122],
-    zoom: 10
+    center: [40.4016274,-79.9315583],
+    //center: [40.4448373, -80.0088122],
+    zoom: 17
 });
 
-/** BASE MAPS
+/** ADD BASE MAP
  **/
 //L.esri.basemapLayer('Gray').addTo(map);
 //L.esri.basemapLayer('GrayLabels').addTo(map);
 L.esri.Vector.basemap('Gray').addTo(map);
 
-/** leaflet draw stuff
+/** ----------------------------------------------------------------------------
+ ** LEAFLET DRAWING TOOLS
  **/
-
-var selectLayer = L.geoJson().addTo(map); //add empty geojson layer for selections
 
 var drawControl = new L.Control.Draw({
     position: 'topright',
@@ -52,9 +73,7 @@ var drawControl = new L.Control.Draw({
 map.addControl(drawControl);
 $('.leaflet-draw-toolbar').hide();
 
-var customPolygon;
-
-map.on('draw:created', function (e) {
+map.on('draw:created', function(e) {
     console.log('draw:created');
     //hide the arrow
     $('.infoArrow').hide();
@@ -67,13 +86,13 @@ map.on('draw:created', function (e) {
 
     var coords = e.layer._latlngs;
     console.log(JSON.stringify(coords));
-    //customPolygon = makeSqlPolygon(coords);
+    customPolygon = e.Layer.feature;
     // Do whatever else you need to. (save to db, add to map etc)
     map.addLayer(layer);
     $('.download').removeAttr('disabled');
 });
 
-map.on('draw:drawstart', function (e) {
+map.on('draw:drawstart', function(e) {
     console.log('start');
     if (drawnLayer) {
         map.removeLayer(drawnLayer);
@@ -81,17 +100,14 @@ map.on('draw:drawstart', function (e) {
 });
 
 
-/** Style Options for Selected LayersLayers
- **/
-var defaultStyleOptions = {color: '#4396E4', weight: 3, opacity: 0.6, fillOpacity:0};
-var highlitStyleOptions = {color: '#4396E4', weight: 6, opacity: 1, fillOpacity: 0.6, fillColor: '#4396E4' };
-
-/** SUSTAIN Layers and functions
+/** ----------------------------------------------------------------------------
+ ** SUSTAIN LAYERS AND QUERY FUNCTIONS
  **/
 
-/** SUSTAIN Map Service
- ** this option provides both rendering and querying capability, but cannot be hosted on ArcGIS Online.
- ** (not using this one)
+/** SUSTAIN Map Service (currently disabled)
+ ** this option provides both rendering and querying capability, but cannot be
+ ** hosted on ArcGIS Online. Since we need to clip using an ArcGIS Server GP
+ ** service anyway, we'll leave the querying and extraction functionality there.
  **
 
 var sustainLayer = L.esri.dynamicMapLayer({
@@ -99,27 +115,27 @@ var sustainLayer = L.esri.dynamicMapLayer({
 }).addTo(map);
 */
 
-
 /** SUSTAIN Tile Service
- ** This option provides rendering capability only, from a pre-rendered tile cache on ArcGIS Online
+ ** This option provides rendering capability only, from a pre-rendered tile
+ ** cache we've hosted openly on ArcGIS Online. 
  **/
-
 var sustainLayer = L.esri.tiledMapLayer({
     url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer',
 }).addTo(map);
- 
 
 /** querySustainLayer()
- ** this function queries the SUSTAIN Map Service to provide information for a map pop-up window
+ ** this function queries the SUSTAIN Map Service (ArcGIS Server) to provide
+ ** information for a map pop-up window. (It also [will be] used by the GP service)
  **/
+
 function querySustainLayer(e) {
     // ** a better data structure will make a lot of what follows obsolete. For now this will do...**
     // the SUSTAIN Map Service is actually six layers, 0-5. We have to query each..
     var results = [];
     for (var i = 0; i < 6; i++) {
         L.esri.query({
-          url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
-        }).intersects(e.latlng).layer(i).run(function (error, featureCollection) {
+            url: "https://geo.civicmapper.com:6443/arcgis/rest/services/sustain2013/MapServer"
+        }).intersects(e.latlng).layer(i).run(function(error, featureCollection) {
             var selection;
             // the query will always return a + response; check if there are actually features
             if (featureCollection.features.length > 0) {
@@ -142,8 +158,10 @@ function querySustainLayer(e) {
     return results;
 }
 
+// pop-up object for SUSTAIN layer
 var sustainPopup = L.popup();
 
+// pop-up content for SUSTAIN Layer
 function makePopUp(results) {
     var content = "<ul>";
     results.forEach(function(e) {
@@ -153,15 +171,17 @@ function makePopUp(results) {
     return content;
 }
 
-
-// runs querySustainLayer() on a map click
-map.on('click', function(e){
+/** QUERY THE SUSTAIN LAYER ON CLICK
+ ** runs querySustainLayer() on a map click
+ **/
+map.on('click', function(e) {
     var results = [];
     var queriesRemaining = 6;
     for (var i = 0; i < 6; i++) {
         L.esri.query({
-          url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
-        }).intersects(e.latlng).layer(i).run(function (error, featureCollection) {
+            //url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
+            url: "https://geo.civicmapper.com:6443/arcgis/rest/services/sustain2013/MapServer"
+        }).intersects(e.latlng).layer(i).run(function(error, featureCollection) {
             // the query will always return a + response; check if there are actually features
             if (featureCollection.features.length > 0) {
                 // if there are, get the fields they have 0 because of the way the data is structured,
@@ -178,7 +198,7 @@ map.on('click', function(e){
             }
             --queriesRemaining;
             if (queriesRemaining <= 0) {
-                console.log(results);
+                //console.log(results);
                 // make the PopUp; default content if nothing returned by query
                 var content;
                 if (map.getZoom() > 14) {
@@ -188,21 +208,46 @@ map.on('click', function(e){
                         content = "No SUSTAIN results for this location";
                     }
                 } else {
-                    content = "Zoom in further to see SUSTAIN results for this location";    
+                    content = "Zoom in further to see SUSTAIN results for this location";
                 }
-                
+
 
                 // set PopUp location and content, and open it on the map
                 sustainPopup
-                .setLatLng(e.latlng)
-                .setContent(content)
-                .openOn(map);
+                    .setLatLng(e.latlng)
+                    .setContent(content)
+                    .openOn(map);
             }
         });
     }
 
     //querySustainLayer(e);
 });
+
+
+/** ----------------------------------------------------------------------------
+ ** CLIPPING LAYERS (WATERSHEDS AND MUNIS)
+ **/
+
+/** An empty geojson layer for selections
+ */
+var selectLayer = L.geoJson().addTo(map); 
+
+/** Style Options for Selected LayersLayers
+ */
+var defaultStyleOptions = {
+    color: '#4396E4',
+    weight: 3,
+    opacity: 0.6,
+    fillOpacity: 0
+};
+var highlitStyleOptions = {
+    color: '#4396E4',
+    weight: 6,
+    opacity: 1,
+    fillOpacity: 0.6,
+    fillColor: '#4396E4'
+};
 
 /** Watershed Layer (Feature Service)
  **/
@@ -223,12 +268,9 @@ var watershedLayer = L.esri.featureLayer({
     watershedLayerSelected = e.layer;
     watershedLayerSelected.setStyle(highlitStyleOptions);
     selectionInfo.update('Watershed', watershedLayerSelected.feature.properties.DESCR);
-    });
-/*
-watershedLayer.bindPopup(function(evt) {
-    return L.Util.template('<p>{DESCR}</p>', evt.feature.properties);
+    console.log(watershedLayerSelected);
+    // assign geojson object from layer to customPolygon var
 });
-*/
 
 /** Municipal Layer (Feature Service)
  **/
@@ -249,44 +291,127 @@ var muniLayer = L.esri.featureLayer({
     muniLayerSelected = e.layer;
     muniLayerSelected.setStyle(highlitStyleOptions);
     selectionInfo.update('Municipality', muniLayerSelected.feature.properties.NAME);
-    });
+    
+});
 
-
-/** Info Control - takes a the place of a pop-up for the muni and watershed layers
+/** Info Control (for Watersheds or Munis)
+ ** takes a the place of a pop-up for the muni and watershed layers
  **/
 
 var selectionInfo = L.control({
     position: 'topright'
 });
 
-selectionInfo.onAdd = function (map) {
+selectionInfo.onAdd = function(map) {
     this._div = L.DomUtil.create('div', 'selectionInfo');
     this.update();
     return this._div;
 };
 
 // method that we will use to update the control based on feature properties passed
-selectionInfo.update = function (layerName, props) {
+selectionInfo.update = function(layerName, props) {
     this._div.innerHTML = (layerName ? '<h4>' + layerName + '</h4>' : 'Select an Area') + (props ? '<strong>' + props + '</strong>' : '');
 };
 
 selectionInfo.addTo(map);
 $('.selectionInfo').hide();
 
+/** ----------------------------------------------------------------------------
+ ** DATA EXTRACTION CHECKBOXES (UI step 2)
+ **/
 
-//$('#splashModal').modal('show');
+/** checkbox list generator
+ ** from http://bootsnipp.com/snippets/featured/checked-list-group
+ **/
+function initCheckboxes() {
+    $('.list-group.checked-list-box .list-group-item').each(function() {
+
+        // Settings
+        var $widget = $(this),
+            $checkbox = $('<input hidden type="checkbox" class="hidden" />'),
+            color = ($widget.data('color') ? $widget.data('color') : "primary"),
+            style = ($widget.data('style') == "button" ? "btn-" : "list-group-item-"),
+            settings = {
+                on: {
+                    icon: 'glyphicon glyphicon-check'
+                },
+                off: {
+                    icon: 'glyphicon glyphicon-unchecked'
+                }
+            };
+
+        $widget.css('cursor', 'pointer');
+        $widget.append($checkbox);
+
+        // Event Handlers
+        $widget.on('click', function() {
+            $checkbox.prop('checked', !$checkbox.is(':checked'));
+            $checkbox.triggerHandler('change');
+            updateDisplay();
+        });
+        $checkbox.on('change', function() {
+            updateDisplay();
+        });
+
+
+        // Actions
+
+        function updateDisplay() {
+            var isChecked = $checkbox.is(':checked');
+
+            // Set the button's state
+            $widget.data('state', (isChecked) ? "on" : "off");
+
+            // Set the button's icon
+            $widget.find('.state-icon')
+                .removeClass()
+                .addClass('state-icon ' + settings[$widget.data('state')].icon);
+
+            // Update the button's color
+            if (isChecked) {
+                $widget.addClass(style + color + ' active');
+            } else {
+                $widget.removeClass(style + color + ' active');
+            }
+        }
+
+        // Initialization
+
+        function init() {
+
+            if ($widget.data('checked') == true) {
+                $checkbox.prop('checked', !$checkbox.is(':checked'));
+            }
+
+            updateDisplay();
+
+            // Inject the icon if applicable
+            if ($widget.find('.state-icon').length == 0) {
+                $widget.prepend('<span class="state-icon ' + settings[$widget.data('state')].icon + '"></span>');
+            }
+        }
+
+        init();
+    });
+}
+
+function listChecked() {
+    var checkedItems = [];
+    $(".fieldList li.active").each(function(idx, li) {
+        checkedItems.push($(li).attr('id'));
+    });
+    return checkedItems;
+}
 
 /** populate fields list
  **/
-$.getJSON('data/fields.json', function (data) {
+$.getJSON('data/fields.json', function(data) {
 
     //console.log(data.length);
-    data.forEach(function (field) {
+    data.forEach(function(field) {
         var listItem = '<li id = "' + field.name + '" class="list-group-item">' + field.title + '<span class="glyphicon glyphicon-info-sign icon-right" aria-hidden="true"></span></li>';
-
         $('.fieldList').append(listItem);
         $('#' + field.name).data("description", field.description);
-
     });
 
     //listener for hovers
@@ -314,19 +439,26 @@ $.getJSON('data/fields.json', function (data) {
     initCheckboxes();
 });
 
-
 //listeners
-$('#selectAll').click(function () {
+$('#selectAll').click(function() {
     $(".fieldList li").click();
     listChecked();
 });
 
 
+/** ----------------------------------------------------------------------------
+ ** DATA EXTRACTION AREA SELECTION (UI step 1)
+ **/
+
 //radio buttons
-$('input[type=radio][name=area]').change(function () {
+$('input[type=radio][name=area]').change(function() {
     //reset all the things
-    if (map.hasLayer(muniLayer)) {muniLayer.remove();}
-    if (map.hasLayer(watershedLayer)) {watershedLayer.remove();}
+    if (map.hasLayer(muniLayer)) {
+        muniLayer.remove();
+    }
+    if (map.hasLayer(watershedLayer)) {
+        watershedLayer.remove();
+    }
     selectLayer.clearLayers();
     $('.leaflet-draw-toolbar').hide();
     $('.selectionInfo').hide();
@@ -359,96 +491,137 @@ $('input[type=radio][name=area]').change(function () {
         $('.selectionInfo').show();
         $('.download').attr('disabled', 'disabled');
     }
+    console.log(this.value + " selected for clipping area");
 });
 
-var flush_selections = function(){
+var flush_selections = function() {
     customPolygon = undefined;
-    nPolygon = undefined;
-    mPolygon = undefined;
+    muniLayerSelected = undefined;
+    watershedLayerSelected = undefined;
 };
 
+/** ----------------------------------------------------------------------------
+ ** DATA EXTRACTION DOWNLOAD (UI step 3)
+ **/
 
-var myService = L.esri.GP.service({
-    url: "https://elevation.arcgis.com/arcgis/rest/services/Tools/ElevationSync/GPServer/Profile",
-    useCors:true
-  });
-var gpTask = myService.createTask();
-
-//runs when any of the download buttons is clicked
-$('.download').click(function () {
-    alert('Download functionality is not yet enabled.');
-    /*
-    gpTask.on('initialized', function(){
-      gpTask.setParam("inputFeature", polyline.toGeoJSON());
-      gpTask.run(function(error, geojson, response){
-        console.log("response");
-      });
-    });
-    */
+/** GP: run extraction service when any one of the download buttons is clicked
+ */
+$('.download').click(function() {
     
-    /*
-
-    var data = {};
-
-    //get current view, download type, and checked fields
-    var bbox = map.getBounds();
-    data.intersects = customPolygon;
-    data.type = $(this).attr('id');
-    var checked = listChecked();
-    console.log(checked);
-
-    //generate comma-separated list of fields
-    data.fields = '';
-    for (var i = 0; i < checked.length; i++) {
-        data.fields += checked[i] + ',';
-    }
-    console.log(data.fields);
-
-    //only add leading comma if at least one field is selected
-    if (data.fields.length > 0) {
-        data.fields = ',' + data.fields.slice(0, -1);
-    }
-
-
+    //alert('Data extraction functionality is not yet enabled.');
+    console.log("--------------------");
+    console.log("Extraction initiated");
+    
+    // set up the geoprocessing service and task
+    var extractionService = L.esri.GP.service({
+        url: "https://geo.civicmapper.com/arcgis/rest/services/sustain_extract_beta/GPServer/SUSTAIN%20Extract%20beta",
+        useCors: true
+    });
+    var gpTask = extractionService.createTask();
+    
+    // Set some templates for the data expected by GP Service
+    var Output_Type = {"Output_GeoJSON":false, "Output_TopoJSON":false, "Output_DXF":false, "Output_SHP":false};
+    var Input_Selection = {"BR":false, "CW":false, "GS":false, "IB":false, "PP":false, "VF":false};
+    var Clipping_Features = {
+        "displayFieldName": "",
+        "geometryType": "esriGeometryPolygon",
+        "spatialReference": {
+            "wkid": 4326,
+            "latestWkid": 4326
+        },
+        "fields": [{
+                "name": "FID",
+                "type": "esriFieldTypeOID",
+                "alias": "FID"
+            }, {
+                "name": "id",
+                "type": "esriFieldTypeInteger",
+                "alias": "id"
+            }, {
+                "name": "Shape_Length",
+                "type": "esriFieldTypeDouble",
+                "alias": "Shape_Length"
+            }, {
+                "name": "Shape_Area",
+                "type": "esriFieldTypeDouble",
+                "alias": "Shape_Area"
+            }
+        ],
+        "features": [],
+        "exceededTransferLimit": false
+    };
+    
+    // 1. determine which download format button was pressed, pass to GP param
+    downloadSelected = $(this).attr('id');
+    Output_Type[downloadSelected] = true;
+    console.log("Output_Type: " + JSON.stringify(Output_Type));
+    
+    // 2. determine which features the user selected for extraction
+    var layersToExtract = listChecked();
+    layersToExtract.forEach(function(e) {
+        Input_Selection[e] = true;
+    });
+    console.log("Input_Selection: " + JSON.stringify(Input_Selection));
+    
+    // 3. determine which clipping geometry to capture (ref the radio buttons)
+    
+    // use the map window's current visible extents for clipping
     if (areaType == 'currentView') {
-        var bboxString = bbox._southWest.lng + ','
-            + bbox._southWest.lat + ','
-            + bbox._northEast.lng + ','
-            + bbox._northEast.lat;
-
-        data.intersects = 'ST_MakeEnvelope(' + bboxString + ',4326)';
+        var bbox = map.getBounds();
+        Clipping_Features = bbox;
+        //console.log("bbox: " + JSON.stringify(bbox));
+        console.log(Clipping_Features);
     }
-
+    
+    // use the user-drawn polygon for clipping
     if (areaType == 'polygon') {
-        if(customPolygon == undefined){
+        if(customPolygon === undefined){
             alert("Don't forget to draw your area on the map!");
             return;
         }
-        data.intersects = customPolygon;
+        Clipping_Features = L.geoJSON(customPolygon);
+        //console.log("custom Polygon: " + JSON.stringify(customPolygon));
     }
 
-
+    // use the selected municipality 
     if (areaType == 'municipality') {
-        if(mPolygon == undefined){
+        if(muniLayerSelected === undefined){
             alert("Don't forget to select your municipality from the map!");
             return;
         }
-        data.intersects = mPolygon;
+        Clipping_Features = L.geoJSON(muniLayerSelected.feature);
     }
 
     if (areaType == 'watershed') {
-        if(nPolygon == undefined){
+        if(watershedLayerSelected === undefined){
             alert("Don't forget to select your watershed from the map!");
             return;
         }
-        data.intersects = nPolygon;
+        Clipping_Features = L.geoJSON(watershedLayerSelected.feature);
     }
+    
+    console.log("Clipping_Features: " + JSON.stringify(Clipping_Features));
+    
+    /** Run GP Task (only once it has been initialized)
+     **
+     **/
+    gpTask.on('initialized', function(){
+        gpTask.setParam("Input_Selection", JSON.stringify(Input_Selection));
+        gpTask.setParam("Clipping_Features", Clipping_Features);
+        gpTask.setParam("Output_Type", JSON.stringify(Output_Type));
+        //gpTask.setOutputParam("Result");
+        console.log("initialized and submitting");
+        console.log(gpTask);
 
-    if (data.type == 'cartodb') {
-        data.type = 'geojson';
-        data.cartodb = true;
-    }
+        gpTask.run(function(error, response, raw){
+            console.log(error);
+            console.log(response);
+            console.log(raw);
+        });
 
+    });
+ 
+    /*
     var queryTemplate = 'https://wprdc.cartodb.com/api/v2/sql?skipfields=cartodb_id,created_at,updated_at,name,description&format={{type}}&filename=parcel_data&q=SELECT the_geom{{fields}} FROM property_assessment_app a WHERE ST_INTERSECTS({{{intersects}}}, a.the_geom)';
 
 
@@ -475,117 +648,31 @@ $('.download').click(function () {
         console.log(url);
         url = 'https://oneclick.cartodb.com/?file=' + url;
     }
-
-    window.open(url, 'My Download');
-
     */
+    
+    //window.open(url, 'My Download');
+
 });
 
-
-/**
- ** map and DOM initialization
+/** ------------------------------------------------------------------------
+ ** DOM READY
  **/
 
-function initCheckboxes() {
-    //sweet checkbox list from http://bootsnipp.com/snippets/featured/checked-list-group
-    $('.list-group.checked-list-box .list-group-item').each(function () {
-
-        // Settings
-        var $widget = $(this),
-            $checkbox = $('<input hidden type="checkbox" class="hidden" />'),
-            color = ($widget.data('color') ? $widget.data('color') : "primary"),
-            style = ($widget.data('style') == "button" ? "btn-" : "list-group-item-"),
-            settings = {
-                on: {
-                    icon: 'glyphicon glyphicon-check'
-                },
-                off: {
-                    icon: 'glyphicon glyphicon-unchecked'
-                }
-            };
-
-        $widget.css('cursor', 'pointer')
-        $widget.append($checkbox);
-
-        // Event Handlers
-        $widget.on('click', function () {
-            $checkbox.prop('checked', !$checkbox.is(':checked'));
-            $checkbox.triggerHandler('change');
-            updateDisplay();
-        });
-        $checkbox.on('change', function () {
-            updateDisplay();
-        });
-
-
-        // Actions
-        function updateDisplay() {
-            var isChecked = $checkbox.is(':checked');
-
-
-            // Set the button's state
-            $widget.data('state', (isChecked) ? "on" : "off");
-
-            // Set the button's icon
-            $widget.find('.state-icon')
-                .removeClass()
-                .addClass('state-icon ' + settings[$widget.data('state')].icon);
-
-            // Update the button's color
-            if (isChecked) {
-                $widget.addClass(style + color + ' active');
-            } else {
-                $widget.removeClass(style + color + ' active');
-            }
-        }
-
-        // Initialization
-        function init() {
-
-            if ($widget.data('checked') == true) {
-                $checkbox.prop('checked', !$checkbox.is(':checked'));
-            }
-
-            updateDisplay();
-
-            // Inject the icon if applicable
-            if ($widget.find('.state-icon').length == 0) {
-                $widget.prepend('<span class="state-icon ' + settings[$widget.data('state')].icon + '"></span>');
-            }
-        }
-
-        init();
-    });
-}
-
-
-
-function listChecked() {
-    var checkedItems = [];
-    $(".fieldList li.active").each(function (idx, li) {
-        checkedItems.push($(li).attr('id'));
-        console.log(checkedItems);
-    });
-    return checkedItems;
-}
-
-
-
-$(document).ready(function () {
-    $('.js-about').click(function () {
+$(document).ready(function() {
+    $('.js-about').click(function() {
 
         $('#modal').fadeIn();
     });
 
-    $('#modal').click(function () {
+    $('#modal').click(function() {
         $(this).fadeOut();
     });
 
-    $('.modal-inner').click(function (event) {
+    $('.modal-inner').click(function(event) {
         event.stopPropagation();
     });
 
-    $(document).on('keyup', function (evt) {
+    $(document).on('keyup', function(evt) {
         if (evt.keyCode == 27) {
             if ($('#modal').css('display') == 'block') {
                 $('#modal').fadeOut();
@@ -594,7 +681,7 @@ $(document).ready(function () {
     });
 
 
-    var scrollShadow = (function () {
+    var scrollShadow = (function() {
         var elem, width, height, offset,
             shadowTop, shadowBottom,
             timeout;
@@ -629,7 +716,7 @@ $(document).ready(function () {
 
         function addScrollListener() {
             elem.off("scroll.shadow");
-            elem.on("scroll.shadow", function () {
+            elem.on("scroll.shadow", function() {
                 if (elem.scrollTop() > 0) {
                     shadowTop.fadeIn(125);
                 } else {
@@ -644,9 +731,9 @@ $(document).ready(function () {
         }
 
         function addResizeListener() {
-            $(window).on("resize.shadow", function () {
+            $(window).on("resize.shadow", function() {
                 clearTimeout(timeout);
-                timeout = setTimeout(function () {
+                timeout = setTimeout(function() {
                     calcPosition();
                     elem.trigger("scroll.shadow");
                 }, 10);
@@ -654,7 +741,7 @@ $(document).ready(function () {
         }
 
         return {
-            init: function (par) {
+            init: function(par) {
                 elem = $(par);
                 initShadows();
                 calcPosition();
