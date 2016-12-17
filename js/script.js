@@ -6,9 +6,6 @@
 var areaType = 'currentView';
 var customPolygon;
 var drawnLayer;
-// variables for managing layer selections
-var previousIds = [];
-var selected;
 // lookup for generating labels from data
 var gi = {
     'BR': 'Bioretention',
@@ -86,7 +83,7 @@ map.on('draw:created', function(e) {
 
     var coords = e.layer._latlngs;
     console.log(JSON.stringify(coords));
-    customPolygon = e.Layer.feature;
+    customPolygon = e.layer.feature;
     // Do whatever else you need to. (save to db, add to map etc)
     map.addLayer(layer);
     $('.download').removeAttr('disabled');
@@ -173,7 +170,7 @@ function makePopUp(results) {
 
 /** QUERY THE SUSTAIN LAYER ON CLICK
  ** runs querySustainLayer() on a map click
- **/
+ **
 map.on('click', function(e) {
     var results = [];
     var queriesRemaining = 6;
@@ -224,7 +221,7 @@ map.on('click', function(e) {
     //querySustainLayer(e);
 });
 
-
+*/
 /** ----------------------------------------------------------------------------
  ** CLIPPING LAYERS (WATERSHEDS AND MUNIS)
  **/
@@ -514,12 +511,13 @@ $('.download').click(function() {
     
     // set up the geoprocessing service and task
     var extractionService = L.esri.GP.service({
-        url: "https://geo.civicmapper.com/arcgis/rest/services/sustain_extract_beta/GPServer/SUSTAIN%20Extract%20beta",
+        url: "https://geo.civicmapper.com/arcgis/rest/services/sustain_extract_beta/GPServer/Clip%20and%20Convert",
         useCors: true
     });
     var gpTask = extractionService.createTask();
     
     // Set some templates for the data expected by GP Service
+    var feature;
     var Output_Type = {"Output_GeoJSON":false, "Output_TopoJSON":false, "Output_DXF":false, "Output_SHP":false};
     var Input_Selection = {"BR":false, "CW":false, "GS":false, "IB":false, "PP":false, "VF":false};
     var Clipping_Features = {
@@ -568,9 +566,19 @@ $('.download').click(function() {
     // use the map window's current visible extents for clipping
     if (areaType == 'currentView') {
         var bbox = map.getBounds();
-        Clipping_Features = bbox;
-        //console.log("bbox: " + JSON.stringify(bbox));
-        console.log(Clipping_Features);
+        // turn map bounds to a Leaflet polygon object, since ESRI GP tool
+        // expects a polygon, not an envelope geometry type
+        var bboxPolygon = L.polygon([
+            [bbox.getNorthWest().lng, bbox.getNorthWest().lat],
+            [bbox.getNorthEast().lng, bbox.getNorthEast().lat],
+            [bbox.getSouthEast().lng, bbox.getSouthEast().lat],
+            [bbox.getSouthWest().lng, bbox.getSouthWest().lat]
+        ]);
+        // convert Leaflet polygon to GeoJSON using the Leaflet polygon class
+        // method; then from GeoJSON to ESRI JSON using Terraformer
+        feature = Terraformer.ArcGIS.convert(bboxPolygon.toGeoJSON());
+        //push the ESRI JSON feature to the features template
+        Clipping_Features.features.push(feature);
     }
     
     // use the user-drawn polygon for clipping
@@ -579,8 +587,10 @@ $('.download').click(function() {
             alert("Don't forget to draw your area on the map!");
             return;
         }
-        Clipping_Features = L.geoJSON(customPolygon);
-        //console.log("custom Polygon: " + JSON.stringify(customPolygon));
+        //convert the drawn polygon (geojson) to ESRI JSON w/ Terraformer
+        feature = Terraformer.ArcGIS.convert(customPolygon);
+        //push the ESRI JSON feature to the features template
+        Clipping_Features.features.push(feature);
     }
 
     // use the selected municipality 
@@ -589,7 +599,10 @@ $('.download').click(function() {
             alert("Don't forget to select your municipality from the map!");
             return;
         }
-        Clipping_Features = L.geoJSON(muniLayerSelected.feature);
+        //convert the selection (geojson) to ESRI JSON w/ Terraformer
+        feature = Terraformer.ArcGIS.convert(muniLayerSelected.feature);
+        //push the ESRI JSON feature to the features template
+        Clipping_Features.features.push(feature);
     }
 
     if (areaType == 'watershed') {
@@ -597,7 +610,10 @@ $('.download').click(function() {
             alert("Don't forget to select your watershed from the map!");
             return;
         }
-        Clipping_Features = L.geoJSON(watershedLayerSelected.feature);
+        //convert the selection (geojson) to ESRI JSON w/ Terraformer
+        feature = Terraformer.ArcGIS.convert(watershedLayerSelected.feature);
+        //push the ESRI JSON feature to the features template
+        Clipping_Features.features.push(feature);
     }
     
     console.log("Clipping_Features: " + JSON.stringify(Clipping_Features));
@@ -607,51 +623,22 @@ $('.download').click(function() {
      **/
     gpTask.on('initialized', function(){
         gpTask.setParam("Input_Selection", JSON.stringify(Input_Selection));
-        gpTask.setParam("Clipping_Features", Clipping_Features);
+        gpTask.setParam("Clipping_Features", JSON.stringify(Clipping_Features));
         gpTask.setParam("Output_Type", JSON.stringify(Output_Type));
-        //gpTask.setOutputParam("Result");
-        console.log("initialized and submitting");
-        console.log(gpTask);
-
+        gpTask.setOutputParam("Result");
+        console.log("GP Task initialized. Submitting Request...");
+        
         gpTask.run(function(error, response, raw){
-            console.log(error);
-            console.log(response);
-            console.log(raw);
+            if (error) {
+                console.log(error);
+                alert("There was an error processing your request. Please try again.");
+            } else {
+                console.log("Extraction complete!");
+                console.log(response);
+                window.location.assign(response.Result.url);
+            }
         });
-
     });
- 
-    /*
-    var queryTemplate = 'https://wprdc.cartodb.com/api/v2/sql?skipfields=cartodb_id,created_at,updated_at,name,description&format={{type}}&filename=parcel_data&q=SELECT the_geom{{fields}} FROM property_assessment_app a WHERE ST_INTERSECTS({{{intersects}}}, a.the_geom)';
-
-
-    var buildquery = Handlebars.compile(queryTemplate);
-    console.log(data);
-    var url = buildquery(data);
-
-    console.log("Downloading " + url);
-
-    //http://oneclick.cartodb.com/?file={{YOUR FILE URL}}&provider={{PROVIDER NAME}}&logo={{YOUR LOGO URL}}
-    if (data.cartodb) {
-        //open in cartodb only works if you encodeURIcomponent() on the SQL,
-        //then concatenate with the rest of the URL, then encodeURIcomponent() the whole thing
-
-        //first, get the SQL
-        var sql = url.split("q=");
-        sql = encodeURIComponent(sql[1]);
-
-
-        url = url.split("SELECT")[0];
-        url += sql;
-
-        url = encodeURIComponent(url);
-        console.log(url);
-        url = 'https://oneclick.cartodb.com/?file=' + url;
-    }
-    */
-    
-    //window.open(url, 'My Download');
-
 });
 
 /** ------------------------------------------------------------------------
