@@ -36,7 +36,7 @@
     <script src="https://cdn-geoweb.s3.amazonaws.com/terraformer-arcgis-parser/1.0.5/terraformer-arcgis-parser.min.js"></script>
     
 
-    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="icon" type="image/png" href="./favicon.ico">
 </head>
 
 <body>
@@ -47,12 +47,12 @@
             <div class="Grid-cell Grid-cell--col6">
                 <h1 class="u-iblock u-malign main-title">
                     <strong>
-                        <span style="color: #4396E4;">3RWW</span>
-                        <span style="color: white;"> SUSTAIN Data Extractor</span>
-                        <span style="color: #4396E4;">alpha</span>
+                        <img src="static\logo.png" style="height:0.75em;"/>&nbsp;
+                        <span style="color: white;">3RWW SUSTAIN Data Extractor</span>
+                        <span style="font-size:0.5em;">v0.1 alpha</span>
                     </strong>
                     <br>
-                    A map for extracting the local results of the EPA SUSTAIN analysis model.
+                    A mapping tool for extracting 3RWW's local results from the EPA SUSTAIN analysis model.
                 </h1>
             </div>
             <div class="Grid-cell Grid-cell--col6 clearfix u-txt-right">
@@ -162,7 +162,7 @@
                 <li>
                     <div class="u-vspace-l">
                         <span class="Number-circle u-txt-center fill fill-dark color-white u-iblock u-malign">3</span>
-                        <h2 class="u-iblock u-malign"><strong>Download!</strong></h2>
+                        <h2 class="u-iblock u-malign"><strong>Extract!</strong></h2>
                     </div>
                     <ul class="u-ilist u-vspace-xxl">
                         <li>
@@ -175,9 +175,30 @@
                                 <a href="#" id="Output_DXF" class="btn btn-sm btn-success download">DXF</a>
                             </p>
                         </li>
-                        <li>
+                        <!--li>
                             <p class="button button--small button--blue">
                                 <a href="#" id="Output_GeoJSON" class="btn btn-sm btn-success download">GeoJSON</a>
+                            </p>
+                        </li-->
+                    </ul>
+                </li>
+                <li>
+                    <br><br>
+                    <ul class="u-ilist u-vspace-xxl">
+                        <li>
+                        <!--style="display: none;"-->
+                            <p class="button button--small button--blue" id="gpmessages" style="display: none;">
+                                <a href="#" class="btn btn-sm btn-success">Extraction started&nbsp;<img src="static\loading2.gif"/></a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="button button--small button--green" id="gpsuccess" style="display: none;">
+                                <a href="#" class="btn btn-sm btn-success">Extraction complete!</a>
+                            </p>
+                        </li>
+                        <li>
+                            <p class="button button--small button--red" id="gperror" style="display: none;">
+                                <a href="#" class="btn btn-sm btn-success">There was an error during extraction. Please try again.</a>
                             </p>
                         </li>
                     </ul>
@@ -193,16 +214,15 @@
         <div class="modal-header navbar-custom u-vspace-xxl">
             <h1>3RWW EPA SUSTAIN</h1>
             <h2>2013 Green Stormwater Infrastructure (GSI) Suitability Model Results</h2>
-            <h3><em>beta</em></h3>
+            <h3>Data Extractor<em>alpha</em></h3>
         </div>
         <div class="modal-body u-txt-left">
-            <p>This mapping tool is for the exploration and download of 3 Rivers Wet Weather's (3RWW) 2013 results from the EPA System Urban Stormwater Treatment and Analysis Integration (SUSTAIN) model for Allegheny County. The map is intended to help municipalities acquire the data and create the maps required for compliance with certain <a href="http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations" data-original-href="http://3riverswetweather.org/about-wet-weather-issue/wet-weather-regulations">wet weather regulations</a>.</p>
-            <br>
-            <p>The SUSTAIN modeling work was conducted by Michael Baker Corp. in 2013. More info on SUSTAIN can be found on the <a href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain" data-original-href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain">US EPA website</a>. Contact <a href="mailto:bdutton@3rww.org" data-original-href="mailto:bdutton@3rww.org">bdutton@3rww.org</a> for more information about the model.</p>
+            <p>This map illustrates <a href="http://3riverswetweather.org/">3 Rivers Wet  Weather's (3RWW)</a> 2013 analysis from the EPA <span style="font-weight: bold;"><span style="font-style: italic;">System Urban Stormwater Treatment and Analysis Integration</span></span> (SUSTAIN) model for the ALCOSAN service area. The data on this map is intended to help municipalities comply with certain wet weather regulations, particularly the Pennsylvania Department of Environmental Protection's geographic information systems (GIS) map submission requirements of the <a href="http://www.3riverswetweather.org/municipalities/municipal-consent-orders/interim-municipal-consent-orders">Phase I Municipal Consent Orders</a>. The SUSTAIN modeling work was conducted by 3RWW and finalized May 15 2013.</p><br>
+            <p>SUSTAIN is a <span style="font-weight: bold;">planning-level </span> analysis that could be used by municipalities to evaluate the potential for incorporating site specific green stormwater infrastructure (GSI) methods and projects into their source reduction studies. <span style="font-weight: bold;">The results are preliminary and informational only. Locations for GSI must be further screened based on local information, hydraulic performance (runoff capture), and cost to determine the true feasibility of GSI for sites and projects. </span></p><br>
+            <p>More info on SUSTAIN can be found on the <a href="https://www.epa.gov/water-research/system-urban-stormwater-treatment-and-analysis-integration-sustain">US EPA website</a>. Contact <a href="mailto:bdutton@3rww.org">bdutton@3rww.org</a> for more information about the model.</p> Contact <a href="mailto:bdutton@3rww.org" data-original-href="mailto:bdutton@3rww.org">bdutton@3rww.org</a> for more information about 3RWW's model run.</p>
             <br><hr><br>
-            <p>This software is based on the <a href="https://github.com/WPRDC/property-information-extractor" data-original-href="https://github.com/WPRDC/property-information-extractor">WPRDC's Property Information Extractor</a>, which was based on Chris Whong's <a href="https://github.com/chriswhong/plutoplus" data-original-href="https://github.com/chriswhong/plutoplus">plutoplus</a>. In adapting those tools for this project, we had to make a few big changes under the hood. Since 3RWW is using an Esri mapping stack, this version swaps out the <a href="https://carto.com/docs/carto-engine/carto-js/" data-original-href="https://carto.com/docs/carto-engine/carto-js/">CARTO JS javascript library</a> for the <a href="https://esri.github.io/esri-leaflet" data-original-href="https://esri.github.io/esri-leaflet">Esri-Leaflet javascript library</a>. CartoJS is based on Leaflet, making that transition somewhat straightforward.</p>
-            <br>
-            <p>This is still a work-in-progress. Download/extraction functionality still needs to be reimplemented in a server-side geoprocessing script using either a FOSS4G library or an ArcGIS Server Geoprocessing service.</p>
+            <p>This web mapping tool is based on the <a href="https://github.com/WPRDC/property-information-extractor">WPRDC's Property Information Extractor</a>, which was based on Chris Whong's <a href="https://github.com/chriswhong/plutoplus" >plutoplus</a>. In adapting those tools for this project, we made some big changes under the hood. To utilize ArcGIS Server map services, this version swaps out the <a href="https://carto.com/docs/carto-engine/carto-js/" >CARTO JS javascript library</a> used by those tools for the <a href="https://esri.github.io/esri-leaflet">Esri-Leaflet javascript library</a>.</p><br>
+            <p>This is an <em>alpha</em>-stage product and therfore a work-in-progress. Please send questions, concerns, or feature requests for this software to <a href="mailto:3rww@civicmapper.com">3rww@civicmapper.com</a></p>
         </div>
     </div>
 </div>

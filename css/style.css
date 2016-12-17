@@ -97,7 +97,7 @@ a:hover {
   z-index: 1000;
 }
 .modal-inner {
-  width: 45%;
+  width: 90%;
   background: #fff;
   border-radius: 4px;
 }
@@ -161,10 +161,11 @@ a:hover {
 .sidebar-cell {
   overflow: scroll;
 }
-
+/*
 .HeaderFixed {
   background-image: linear-gradient(to bottom, #2b6988 0%, #1f4b61 100%);
 }
+*/
 
 .HeaderFixed strong {
   font-size:28px;

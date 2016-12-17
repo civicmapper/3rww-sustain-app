@@ -15,12 +15,13 @@ var gi = {
     'PP': 'Porous Pavement',
     'VF': 'Vegetated Filterstrip'
 };
+var sustainZoom = 14;
 
 /** ----------------------------------------------------------------------------
  ** SPLASH SCREEN
  **/
 
-//$('#splashModal').modal('show');
+//$('#modal').show();
 
 /** ----------------------------------------------------------------------------
  ** LEAFLET MAP INITIALIZATION
@@ -29,9 +30,9 @@ var gi = {
 /** INITIALIZE MAP
  **/
 var map = new L.Map('map', {
-    center: [40.4016274,-79.9315583],
-    //center: [40.4448373, -80.0088122],
-    zoom: 17
+    //center: [40.4016274,-79.9315583],
+    center: [40.4448373, -80.0088122],
+    zoom: 10
 });
 
 /** ADD BASE MAP
@@ -120,42 +121,7 @@ var sustainLayer = L.esri.tiledMapLayer({
     url: 'https://tiles.arcgis.com/tiles/dMKWX9NPCcfmaZl3/arcgis/rest/services/sustain/MapServer',
 }).addTo(map);
 
-/** querySustainLayer()
- ** this function queries the SUSTAIN Map Service (ArcGIS Server) to provide
- ** information for a map pop-up window. (It also [will be] used by the GP service)
- **/
-
-function querySustainLayer(e) {
-    // ** a better data structure will make a lot of what follows obsolete. For now this will do...**
-    // the SUSTAIN Map Service is actually six layers, 0-5. We have to query each..
-    var results = [];
-    for (var i = 0; i < 6; i++) {
-        L.esri.query({
-            url: "https://geo.civicmapper.com:6443/arcgis/rest/services/sustain2013/MapServer"
-        }).intersects(e.latlng).layer(i).run(function(error, featureCollection) {
-            var selection;
-            // the query will always return a + response; check if there are actually features
-            if (featureCollection.features.length > 0) {
-                // if there are, get the fields they have 0 because of the way the data is structured,
-                // type is reflected in the field name (row value is a boolean)
-                var r = featureCollection.features[0];
-                var fields = Object.keys(r.properties);
-                // compare fields against a lookup to determine which GI we've actually returned.
-                Object.keys(gi).forEach(function(e) {
-                    if ($.inArray(e, fields) > -1) {
-                        //console.log(gi[e]);
-                        selection = gi[e];
-                    }
-                });
-            }
-            return selection;
-        });
-        results.push(selection);
-    }
-    return results;
-}
-
-// pop-up object for SUSTAIN layer
+// pop-up object for displaying info about the SUSTAIN layer
 var sustainPopup = L.popup();
 
 // pop-up content for SUSTAIN Layer
@@ -169,59 +135,61 @@ function makePopUp(results) {
 }
 
 /** QUERY THE SUSTAIN LAYER ON CLICK
- ** runs querySustainLayer() on a map click
- **
+ ** this function queries the SUSTAIN Map Service (ArcGIS Server) to provide
+ ** information for a map pop-up window. Only returns results above a certain
+ ** zoom level.
+ **/
 map.on('click', function(e) {
-    var results = [];
-    var queriesRemaining = 6;
-    for (var i = 0; i < 6; i++) {
-        L.esri.query({
-            //url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
-            url: "https://geo.civicmapper.com:6443/arcgis/rest/services/sustain2013/MapServer"
-        }).intersects(e.latlng).layer(i).run(function(error, featureCollection) {
-            // the query will always return a + response; check if there are actually features
-            if (featureCollection.features.length > 0) {
-                // if there are, get the fields they have 0 because of the way the data is structured,
-                // type is reflected in the field name (row value is a boolean)
-                var r = featureCollection.features[0];
-                var fields = Object.keys(r.properties);
-                // compare fields against a lookup to determine which GI we've actually returned.
-                Object.keys(gi).forEach(function(e) {
-                    if ($.inArray(e, fields) > -1) {
-                        //console.log(gi[e]);
-                        results.push(gi[e]);
-                    }
-                });
-            }
-            --queriesRemaining;
-            if (queriesRemaining <= 0) {
-                //console.log(results);
-                // make the PopUp; default content if nothing returned by query
-                var content;
-                if (map.getZoom() > 14) {
-                    if (results.length > 0) {
-                        content = '<h4>This point is suitable for:</h4><hr>' + makePopUp(results);
-                    } else {
-                        content = "No SUSTAIN results for this location";
-                    }
-                } else {
-                    content = "Zoom in further to see SUSTAIN results for this location";
+    if (map.getZoom() > sustainZoom) {
+        var results = [];
+        var queriesRemaining = 6;
+        for (var i = 0; i < 6; i++) {
+            L.esri.query({
+                //url: "http://geo.civicmapper.com:6080/arcgis/rest/services/sustain2013/MapServer"
+                url: "https://geo.civicmapper.com:6443/arcgis/rest/services/sustain2013/MapServer"
+            }).intersects(e.latlng).layer(i).run(function(error, featureCollection) {
+                // the query will always return a + response; check if there are actually features
+                if (featureCollection.features.length > 0) {
+                    // if there are, get the fields they have 0 because of the way the data is structured,
+                    // type is reflected in the field name (row value is a boolean)
+                    var r = featureCollection.features[0];
+                    var fields = Object.keys(r.properties);
+                    // compare fields against a lookup to determine which GI we've actually returned.
+                    Object.keys(gi).forEach(function(e) {
+                        if ($.inArray(e, fields) > -1) {
+                            //console.log(gi[e]);
+                            results.push(gi[e]);
+                        }
+                    });
                 }
-
-
-                // set PopUp location and content, and open it on the map
-                sustainPopup
-                    .setLatLng(e.latlng)
-                    .setContent(content)
-                    .openOn(map);
-            }
-        });
+                --queriesRemaining;
+                if (queriesRemaining <= 0) {
+                    //console.log(results);
+                    // make the PopUp; default content if nothing returned by query
+                    var content;
+                    if (map.getZoom() > sustainZoom) {
+                        if (results.length > 0) {
+                            content = '<h4>This point is suitable for:</h4><hr>' + makePopUp(results);
+                        } else {
+                            content = "No SUSTAIN results for this location";
+                        }
+                    } else {
+                        content = "Zoom in further to see SUSTAIN results for this location";
+                    }
+    
+    
+                    // set PopUp location and content, and open it on the map
+                    sustainPopup
+                        .setLatLng(e.latlng)
+                        .setContent(content)
+                        .openOn(map);
+                }
+            });
+        }
     }
-
-    //querySustainLayer(e);
 });
 
-*/
+
 /** ----------------------------------------------------------------------------
  ** CLIPPING LAYERS (WATERSHEDS AND MUNIS)
  **/
@@ -626,15 +594,17 @@ $('.download').click(function() {
         gpTask.setParam("Clipping_Features", JSON.stringify(Clipping_Features));
         gpTask.setParam("Output_Type", JSON.stringify(Output_Type));
         gpTask.setOutputParam("Result");
-        console.log("GP Task initialized. Submitting Request...");
-        
+        console.log("Extraction initialized. Submitting Request...");
+        $('#gpmessages').show();
         gpTask.run(function(error, response, raw){
+            $('#gpmessages').hide();
             if (error) {
+                $('#gperror').show();
+                console.log("There was an error processing your request. Please try again.");
                 console.log(error);
-                alert("There was an error processing your request. Please try again.");
             } else {
+                $('#gpsuccess').show();
                 console.log("Extraction complete!");
-                console.log(response);
                 window.location.assign(response.Result.url);
             }
         });
@@ -644,6 +614,14 @@ $('.download').click(function() {
 /** ------------------------------------------------------------------------
  ** DOM READY
  **/
+
+function hideNotices(event) {
+    event.preventDefault();
+    $( this ).hide();
+}
+
+$("#gperror").click(hideNotices);
+$("#gpsuccess").click(hideNotices);
 
 $(document).ready(function() {
     $('.js-about').click(function() {
