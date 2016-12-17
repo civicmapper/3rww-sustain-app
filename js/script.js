@@ -263,6 +263,29 @@ var muniLayer = L.esri.featureLayer({
  ** takes a the place of a pop-up for the muni and watershed layers
  **/
 
+var zoomRequest = L.control({
+    position: 'bottomleft'
+});
+
+zoomRequest.onAdd = function(map) {
+    this._div = L.DomUtil.create('div', 'zoomRequest');
+    this._div.innerHTML = '<h4>Zoom in to see the SUSTAIN results</h4>';
+    this.update();
+    return this._div;
+};
+
+// method that we will use to update the control based on feature properties passed
+zoomRequest.update = function(zoom) {
+    if (zoom <= sustainZoom) {
+        $(".zoomRequest").show();
+    } else {
+        $(".zoomRequest").hide();
+    }
+};
+
+zoomRequest.addTo(map);
+//zoomRequest.update(map.getZoom());
+
 var selectionInfo = L.control({
     position: 'topright'
 });
@@ -399,7 +422,6 @@ $.getJSON('data/fields.json', function(data) {
             .fadeOut(150);
     }
 
-
     //custom functionality for checkboxes
     initCheckboxes();
 });
@@ -409,7 +431,6 @@ $('#selectAll').click(function() {
     $(".fieldList li").click();
     listChecked();
 });
-
 
 /** ----------------------------------------------------------------------------
  ** DATA EXTRACTION AREA SELECTION (UI step 1)
@@ -720,4 +741,9 @@ $(document).ready(function() {
     }());
     // start
     scrollShadow.init(".well-inner");
+});
+
+map.on('zoomend', function(e) {
+    console.log(map.getZoom());
+    zoomRequest.update(map.getZoom());
 });

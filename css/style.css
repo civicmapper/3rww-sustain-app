@@ -202,7 +202,7 @@ h1.main-title {
   font-family: 'Titillium Web', sans-serif;
 }
 
-.selectionInfo {
+.selectionInfo, .zoomRequest {
     padding: 6px 8px;
     background: white;
     background: rgba(255,255,255,0.8);
@@ -210,7 +210,7 @@ h1.main-title {
     border-radius: 5px;
     text-align: right;
 }
-.selectionInfo h4 {
+.selectionInfo, .zoomRequest h4 {
     margin: 0 0 5px;
     color: #777;
     text-align: right;
