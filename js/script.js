@@ -259,8 +259,9 @@ var muniLayer = L.esri.featureLayer({
     
 });
 
-/** Info Control (for Watersheds or Munis)
- ** takes a the place of a pop-up for the muni and watershed layers
+/** zoomRequest
+ ** tells the viewer to zoom in to see the results, disappears when the layer is
+ ** available
  **/
 
 var zoomRequest = L.control({
@@ -284,7 +285,11 @@ zoomRequest.update = function(zoom) {
 };
 
 zoomRequest.addTo(map);
-//zoomRequest.update(map.getZoom());
+
+
+/** Info Control (for Watersheds or Munis)
+ ** takes a the place of a pop-up for the muni and watershed layers
+ **/
 
 var selectionInfo = L.control({
     position: 'topright'
@@ -397,7 +402,8 @@ $.getJSON('data/fields.json', function(data) {
 
     //console.log(data.length);
     data.forEach(function(field) {
-        var listItem = '<li id = "' + field.name + '" class="list-group-item">' + field.title + '<span class="glyphicon glyphicon-info-sign icon-right" aria-hidden="true"></span></li>';
+        var listItem = '<li id = "' + field.name + '" class="list-group-item">' + field.title + '<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></li>';
+        //var listItem = '<li id = "' + field.name + '" class="list-group-item">' + field.title + '<span class="glyphicon glyphicon-info-sign icon-right" aria-hidden="true"></span></li>';
         $('.fieldList').append(listItem);
         $('#' + field.name).data("description", field.description);
     });

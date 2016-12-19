@@ -17,13 +17,13 @@
   padding: 13px 26px;
 }
 .HeaderFixed--blue {
-  background: #0090D7
+  background: #3890E2
 }
 a:hover {
   text-decoration: none;
 }
 .button--white a {
-  color: #0090D7;
+  color: #3890E2;
   background: #fff;
 }
 .desactive {
