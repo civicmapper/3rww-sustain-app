@@ -41,6 +41,22 @@ var map = new L.Map('map', {
 //L.esri.basemapLayer('GrayLabels').addTo(map);
 L.esri.Vector.basemap('Gray').addTo(map);
 
+/** ADD REFERENCE LAYER(S)
+ **/
+
+var serviceArea = L.esri.featureLayer({
+    url: 'https://services6.arcgis.com/dMKWX9NPCcfmaZl3/arcgis/rest/services/alcosan_basemap/FeatureServer/0',
+    ignoreRenderer: true,
+    style: function() {
+        return {
+            color: '#333333',
+            weight: 8,
+            opacity: 0.25,
+            fillOpacity: 0.1
+        };
+    }
+}).addTo(map);
+
 /** ----------------------------------------------------------------------------
  ** LEAFLET DRAWING TOOLS
  **/
@@ -96,7 +112,6 @@ map.on('draw:drawstart', function(e) {
         map.removeLayer(drawnLayer);
     }
 });
-
 
 /** ----------------------------------------------------------------------------
  ** SUSTAIN LAYERS AND QUERY FUNCTIONS
