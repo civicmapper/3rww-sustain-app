@@ -241,7 +241,8 @@ var watershedLayer = L.esri.featureLayer({
  **/
 var muniLayerSelected;
 var muniLayer = L.esri.featureLayer({
-    url: 'https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/AlleghenyCountyMunicipalBoundaries/FeatureServer/0',
+    //url: 'https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/AlleghenyCountyMunicipalBoundaries/FeatureServer/0',
+    url: 'https://services6.arcgis.com/dMKWX9NPCcfmaZl3/ArcGIS/rest/services/alcosan_munis/FeatureServer/0',
     ignoreRenderer: true,
     style: function() {
         return defaultStyleOptions;
@@ -255,7 +256,7 @@ var muniLayer = L.esri.featureLayer({
     }
     muniLayerSelected = e.layer;
     muniLayerSelected.setStyle(highlitStyleOptions);
-    selectionInfo.update('Municipality', muniLayerSelected.feature.properties.NAME);
+    selectionInfo.update('Municipality', muniLayerSelected.feature.properties.MUNI_NAME);
     
 });
 
