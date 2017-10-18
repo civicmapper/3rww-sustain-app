@@ -522,7 +522,7 @@ $('.download').click(function() {
     
     // set up the geoprocessing service and task
     var extractionService = L.esri.GP.service({
-        url: "https://geo.civicmapper.com/arcgis/rest/services/sustain_extract_beta/GPServer/Clip%20and%20Convert",
+        url: "https://geodata.civicmapper.com/arcgis/rest/services/sustain/sustain_extract_beta/GPServer/Clip%20and%20Convert",
         useCors: true
     });
     var gpTask = extractionService.createTask();
